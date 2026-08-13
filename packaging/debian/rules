@@ -8,5 +8,8 @@ override_dh_auto_build:
 
 override_dh_auto_install:
 	install -Dm755 target/release/wolfetch debian/wolfetch/usr/bin/wolfetch
+	install -Dm755 target/release/wfetch debian/wolfetch/usr/bin/wfetch
 	install -Dm644 LICENSE debian/wolfetch/usr/share/doc/wolfetch/copyright
 	install -Dm644 config.example debian/wolfetch/usr/share/doc/wolfetch/config.example
+	install -Dm644 man/wolfetch.1 debian/wolfetch/usr/share/man/man1/wolfetch.1
+	install -Dm644 man/wolfetch.5 debian/wolfetch/usr/share/man/man5/wolfetch.5

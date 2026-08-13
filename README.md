@@ -58,7 +58,7 @@ install -Dm755 wolfetch ~/.local/bin/wolfetch
 ### Debian and Ubuntu
 
 ```sh
-sudo apt install ./wolfetch_0.5.0-pre.1_amd64.deb
+sudo apt install ./wolfetch_0.5.0-pre.2_amd64.deb
 ```
 
 ### Arch Linux and AUR
@@ -122,9 +122,13 @@ The order in `show=` controls the order of the information lines.
 
 See `docs/configuration.md` and `config.example` for all options.
 
+The small gray line at the bottom shows wolfetch's own startup time and
+process memory. It is not the machine's total memory usage; that is the
+`Memory` field above.
+
 ## Project Status
 
-`0.5.0-pre.1` is the first public pre-release. Linux is the primary tested
+`0.5.0-pre.2` is the first public pre-release with both command names. Linux is the primary tested
 platform. BSD backends and package recipes are included for native testing and
 will be promoted to stable support after their CI and smoke tests pass.
 
@@ -133,10 +137,10 @@ will be promoted to stable support after their CI and smoke tests pass.
 | Platform | Status |
 | --- | --- |
 | Linux | Supported |
-| FreeBSD | Backend in progress for 0.5.0-pre.1 |
-| OpenBSD | Backend in progress for 0.5.0-pre.1 |
-| NetBSD | Backend in progress for 0.5.0-pre.1 |
-| DragonFly BSD | Backend in progress for 0.5.0-pre.1 |
+| FreeBSD | Backend in progress for 0.5.0-pre.2 |
+| OpenBSD | Backend in progress for 0.5.0-pre.2 |
+| NetBSD | Backend in progress for 0.5.0-pre.2 |
+| DragonFly BSD | Backend in progress for 0.5.0-pre.2 |
 
 The pre-release status is intentional until each BSD target has passed native
 build and smoke tests.

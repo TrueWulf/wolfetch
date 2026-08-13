@@ -68,6 +68,13 @@ install -Dm755 target/release/wolfetch ~/.local/bin/wolfetch
 The source build works on systems without systemd because wolfetch only runs
 when called and reads local kernel/system interfaces directly.
 
+The source build produces both command names:
+
+```text
+wolfetch
+wfetch
+```
+
 ## AUR Submission
 
 The repository contains the AUR-ready file at

@@ -1,6 +1,6 @@
 pkgname=wolfetch
-pkgver=0.5.0.pre1
-_tag=0.5.0-pre.1
+pkgver=0.5.0.pre2
+_tag=0.5.0-pre.2
 pkgrel=1
 pkgdesc='A tiny, fast system fetch for Linux and BSD'
 arch=('x86_64')
@@ -17,6 +17,12 @@ build() {
 package() {
   cd "$srcdir/wolfetch-$_tag"
   install -Dm755 target/release/wolfetch "$pkgdir/usr/bin/wolfetch"
+  install -Dm755 target/release/wfetch "$pkgdir/usr/bin/wfetch"
   install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
   install -Dm644 config.example "$pkgdir/usr/share/doc/$pkgname/config.example"
+  install -Dm644 man/wolfetch.1 "$pkgdir/usr/share/man/man1/wolfetch.1"
+  install -Dm644 man/wolfetch.5 "$pkgdir/usr/share/man/man5/wolfetch.5"
+  install -Dm644 completions/wolfetch.bash "$pkgdir/usr/share/bash-completion/completions/wolfetch"
+  install -Dm644 completions/wolfetch.fish "$pkgdir/usr/share/fish/vendor_completions.d/wolfetch.fish"
+  install -Dm644 completions/_wolfetch "$pkgdir/usr/share/zsh/site-functions/_wolfetch"
 }

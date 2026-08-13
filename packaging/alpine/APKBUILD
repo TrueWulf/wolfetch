@@ -1,12 +1,12 @@
 pkgname=wolfetch
-pkgver=0.5.0_pre1
+pkgver=0.5.0_pre2
 pkgrel=0
 pkgdesc="Tiny and fast system fetch for Linux and BSD"
 url="https://github.com/TrueWulf/wolfetch"
 arch="all"
 license="GPL-3.0-only"
 makedepends="cargo"
-source="$pkgname-0.5.0-pre.1.tar.gz::https://github.com/TrueWulf/wolfetch/archive/refs/tags/v0.5.0-pre.1.tar.gz"
+source="$pkgname-0.5.0-pre.2.tar.gz::https://github.com/TrueWulf/wolfetch/archive/refs/tags/v0.5.0-pre.2.tar.gz"
 
 build() {
   cargo build --release --locked
@@ -14,5 +14,8 @@ build() {
 
 package() {
   install -Dm755 target/release/wolfetch "$pkgdir/usr/bin/wolfetch"
+  install -Dm755 target/release/wfetch "$pkgdir/usr/bin/wfetch"
   install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+  install -Dm644 man/wolfetch.1 "$pkgdir/usr/share/man/man1/wolfetch.1"
+  install -Dm644 man/wolfetch.5 "$pkgdir/usr/share/man/man5/wolfetch.5"
 }

@@ -38,3 +38,15 @@ color_stats=243
 ```
 
 The wolf is rendered as one light royal-blue color in the default theme.
+
+## Final Statistics
+
+The final line contains two process statistics:
+
+```text
+0.14 ms | 1.56 MiB
+```
+
+The first value is wolfetch startup and collection time. The second value is
+the resident memory used by wolfetch itself. It is not total system memory;
+that is shown by the `Memory` field.
