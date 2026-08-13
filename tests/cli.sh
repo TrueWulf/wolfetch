@@ -4,7 +4,7 @@ set -euo pipefail
 bin="${1:?path to wolfetch binary required}"
 
 version="$($bin --version)"
-[[ "$version" == "wolfetch 0.5.2" ]]
+[[ "$version" == "wolfetch 0.5.3" ]]
 
 help="$($bin --help)"
 grep -F -- '--minimal' <<<"$help" >/dev/null

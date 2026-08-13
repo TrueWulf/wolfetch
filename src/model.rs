@@ -1,4 +1,4 @@
-pub const VERSION: &[u8] = b"0.5.2";
+pub const VERSION: &[u8] = b"0.5.3";
 pub const FIELD_DISTRO: u16 = 1 << 0;
 pub const FIELD_KERNEL: u16 = 1 << 1;
 pub const FIELD_WM: u16 = 1 << 2;
@@ -23,8 +23,7 @@ pub const FIELD_DEFAULT: u16 = FIELD_DISTRO
     | FIELD_CPU
     | FIELD_GPU
     | FIELD_MEMORY
-    | FIELD_UPTIME
-    | FIELD_DE;
+    | FIELD_UPTIME;
 pub const FIELD_ALL: u16 = FIELD_DEFAULT
     | FIELD_HOST
     | FIELD_LOAD
@@ -269,8 +268,8 @@ impl Config {
             logo: true,
             runtime: true,
             process_memory: true,
-            order: [0, 1, 2, 3, 4, 5, 6, 7, 8, 15, 0, 0, 0, 0, 0, 0],
-            order_len: 10,
+            order: [0, 1, 2, 3, 4, 5, 6, 7, 8, 0, 0, 0, 0, 0, 0, 0],
+            order_len: 9,
         }
     }
 }

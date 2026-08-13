@@ -12,7 +12,7 @@ included in the startup measurement.
 
 - Host: AMD Ryzen 7 5700X, 8 cores
 - OS: Arch Linux
-- wolfetch: `0.5.2`, built from this checkout with `cargo build --release`
+- wolfetch: `0.5.3`, built from this checkout with `cargo build --release`
 - Fastfetch: `2.66.0`
 - Macchina: `6.4.0`
 - Timer: Hyperfine `1.20.0`, `--warmup 5 --runs 50 --shell=none`

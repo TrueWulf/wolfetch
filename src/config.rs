@@ -144,7 +144,7 @@ fn set_fields(config: &mut Config, value: &[u8]) {
 #[cfg(test)]
 mod tests {
     use super::{Config, apply_line, set_fields};
-    use crate::model::{FIELD_CPU_USAGE, FIELD_DISK, FIELD_HOST};
+    use crate::model::{FIELD_CPU_USAGE, FIELD_DE, FIELD_DISK, FIELD_HOST};
 
     #[test]
     fn show_preserves_requested_order() {
@@ -171,6 +171,12 @@ mod tests {
         set_fields(&mut config, b"all");
         assert_eq!(config.order_len, 16);
         assert_eq!(config.show, crate::model::FIELD_ALL);
+    }
+
+    #[test]
+    fn default_fields_do_not_include_unknown_desktop_environment() {
+        let config = Config::new();
+        assert_eq!(config.show & FIELD_DE, 0);
     }
 
     #[test]

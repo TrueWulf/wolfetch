@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.3
+
+- Hide unavailable desktop environment data from the default output.
+- Keep `DE` available through explicit configuration or `show=all`.
+
 ## 0.5.2
 
 - Add CPU usage to CPU output and dependency-free GPU usage where Linux sysfs exposes it.
