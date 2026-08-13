@@ -7,7 +7,7 @@ arch=('x86_64')
 url='https://github.com/TrueWulf/wolfetch'
 license=('GPL3')
 source=("wolfetch-$pkgver.tar.gz::https://github.com/TrueWulf/wolfetch/releases/download/v$_tag/wolfetch-$_tag.tar.gz")
-sha256sums=('67a8d63a68c11355135d351902b040135437f5973d31e06079097b3edb31fb7d')
+sha256sums=('c7a35e91baaeeb94704d9ffb46d473c81d0d6846d9680509f649bb0dc501bcaa')
 
 build() {
   cd "$srcdir/wolfetch-$_tag"
