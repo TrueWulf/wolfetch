@@ -15,7 +15,7 @@ minimal="$($bin --minimal --plain)"
 [[ "$minimal" != *'GPU :'* ]]
 [[ "$minimal" != *$'\e['* ]]
 
-full="$($bin --plain)"
+full="$($bin --plain --no-logo)"
 grep -E '^CPU +: .+ \([^)]*\)$' <<<"$full" >/dev/null
 grep -E '^GPU +: .+ \([^)]*\)$' <<<"$full" >/dev/null
 
