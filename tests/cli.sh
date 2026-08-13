@@ -23,4 +23,4 @@ grep -E '^CPU +: .+ \([^)]*\)$' <<<"$full" >/dev/null
 grep -E '^GPU +: .+ \([^)]*\)$' <<<"$full" >/dev/null
 
 json="$($bin --json)"
-python -c 'import json, sys; data = json.loads(sys.stdin.read()); assert data["Distro"]; assert data["WM"]; assert "startup_ms" in data' <<<"$json"
+python -c 'import json, sys; data = json.loads(sys.stdin.read()); assert data["schema_version"] == 1; assert data["Distro"]; assert data["WM"]; assert "startup_ms" in data' <<<"$json"

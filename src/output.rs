@@ -220,7 +220,7 @@ fn stats(buffer: &mut Buffer, field: &Field, color: u8, colors: bool) {
 
 fn render_json(info: &Info, config: &Config) {
     let mut buffer = Buffer::new();
-    buffer.push(b'{');
+    buffer.extend(b"{\"schema_version\":1");
     let labels: [&[u8]; 16] = [
         platform::os_label(),
         b"Kernel",
@@ -257,7 +257,7 @@ fn render_json(info: &Info, config: &Config) {
         FIELD_CPU_USAGE,
         FIELD_DE,
     ];
-    let mut first = true;
+    let mut first = false;
     for position in 0..config.order_len {
         let index = config.order[position] as usize;
         if config.show & masks[index] == 0 {

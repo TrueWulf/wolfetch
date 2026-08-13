@@ -21,6 +21,8 @@ wolfetch
 wfetch
 wolfetch --plain
 wolfetch --json
+wolfetch       # fastest default path
+wolfetch -u    # optional NVIDIA NVML usage
 ```
 
 ## Features
@@ -34,11 +36,20 @@ wolfetch --json
 - No system service or runtime daemon.
 - No shell commands executed from configuration.
 
+The default command is the fastest path and does not initialize NVML. Use
+`wolfetch -u` (or `wfetch -u`) to enable optional NVIDIA GPU utilization via
+NVML. That mode is slower because the NVIDIA library must be loaded and
+initialized; without the flag, or without NVML, NVIDIA usage is shown as
+`N/A`.
+
 ## Benchmark
 
 Honest local Hyperfine benchmark for wolfetch, pfetch-rs, Fastfetch and
 Macchina. See [`benchmarks/results.md`](benchmarks/results.md) for hardware,
 versions, commands and measured output.
+
+The benchmark reports both the fast default path and the slower optional
+`--gpu-usage` path separately.
 
 Run the reproducible benchmark yourself:
 
@@ -65,6 +76,7 @@ show_process_memory=true
 ```
 
 See [configuration.md](docs/configuration.md) for all fields and options.
+See [json.md](docs/json.md) for the JSON schema and version.
 
 ## Support
 

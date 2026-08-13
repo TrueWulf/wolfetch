@@ -34,6 +34,13 @@ Optional NVIDIA utilization can be enabled with `wolfetch --gpu-usage` (or
 `-u`). This dynamically loads NVML when `libnvidia-ml.so.1` is installed; the
 normal command does not load NVML and keeps the fast startup path.
 
+GPU utilization fallback order is:
+
+- AMD `gpu_busy_percent` sysfs data.
+- Intel `gt_busy_percent` sysfs data when exposed by the driver.
+- NVIDIA NVML only when `--gpu-usage`/`-u` is requested.
+- `N/A` when no supported source is available.
+
 Set `wm=dwl` (or another name) when a window manager does not expose a stable
 session marker. The override is explicit rather than guessing from unrelated
 processes.

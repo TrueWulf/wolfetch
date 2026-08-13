@@ -514,7 +514,6 @@ fn disk_value(field: &mut Field) {
 
 fn resolution_value(field: &mut Field) {
     field.set(b"Unknown");
-    let mut found = false;
     let connectors = [
         b"HDMI-A-1\0".as_slice(),
         b"HDMI-A-2\0".as_slice(),
@@ -580,21 +579,25 @@ fn resolution_value(field: &mut Field) {
                 end -= 1;
             }
             if end > 0 {
-                let mut mode = Field::new();
-                mode.set(&data[..end]);
-                mode.trim();
-                if !mode.is_unknown() && !field.contains(&mode.data[..mode.len]) {
-                    if !found {
-                        field.clear();
-                        found = true;
-                    } else {
-                        field.extend(b", ");
-                    }
-                    field.extend(&mode.data[..mode.len]);
-                }
+                append_mode(field, &data[..end]);
             }
         }
     }
+}
+
+fn append_mode(field: &mut Field, mode: &[u8]) {
+    let mut value = Field::new();
+    value.set(mode);
+    value.trim();
+    if value.len == 0 || value.is_unknown() || field.contains(&value.data[..value.len]) {
+        return;
+    }
+    if field.is_unknown() {
+        field.clear();
+    } else {
+        field.extend(b", ");
+    }
+    field.extend(&value.data[..value.len]);
 }
 
 fn cpu_usage_value(sample: (u64, u64)) -> Field {
@@ -623,29 +626,18 @@ fn gpu_usage_value(gpu: &Field, enabled: bool) -> Field {
         let mut usage = Field::new();
         let size = read_file(&path[..len], &mut data);
         if size > 0 {
-            usage.set(&data[..size]);
-            usage.trim();
-            if !is_percentage(&usage) {
-                usage.clear();
-            }
+            usage = percentage_field(&data[..size]);
         }
         if usage.len == 0 {
             let len = device_path(&mut path, card, b"/gt_busy_percent\0");
             let size = read_file(&path[..len], &mut data);
             if size > 0 {
-                usage.set(&data[..size]);
-                usage.trim();
-                if !is_percentage(&usage) {
-                    usage.clear();
-                }
+                usage = percentage_field(&data[..size]);
             }
         }
         if usage.len > 0 {
-            if found {
-                output.extend(b", ");
-            }
-            output.extend(&usage.data[..usage.len]);
-            output.push(b'%');
+            usage.push(b'%');
+            append_unique(&mut output, &usage, b", ");
             found = true;
         }
     }
@@ -655,10 +647,7 @@ fn gpu_usage_value(gpu: &Field, enabled: bool) -> Field {
         Field::new()
     };
     if nvidia.len > 0 {
-        if found {
-            output.extend(b", ");
-        }
-        output.extend(&nvidia.data[..nvidia.len]);
+        append_unique(&mut output, &nvidia, b", ");
         found = true;
     }
     if found { output } else { unknown() }
@@ -710,11 +699,7 @@ fn nvidia_usage_value() -> Field {
         if unsafe { get_handle(index, &mut device) } == 0
             && unsafe { get_utilization(device, &mut utilization) } == 0
         {
-            if output.len > 0 {
-                output.extend(b", ");
-            }
-            output.u64(u64::from(utilization.gpu));
-            output.push(b'%');
+            append_nvml_result(&mut output, 0, utilization.gpu);
         }
     }
     unsafe {
@@ -722,6 +707,17 @@ fn nvidia_usage_value() -> Field {
         dlclose(handle);
     }
     output
+}
+
+fn append_nvml_result(output: &mut Field, status: u32, gpu: u32) {
+    if status != 0 || gpu > 100 {
+        return;
+    }
+    if output.len > 0 {
+        output.extend(b", ");
+    }
+    output.u64(u64::from(gpu));
+    output.push(b'%');
 }
 
 unsafe fn nvml_symbol<T>(handle: *mut c_void, name: *const u8) -> Option<T> {
@@ -738,6 +734,26 @@ fn is_percentage(field: &Field) -> bool {
         && field.data[..field.len]
             .iter()
             .all(|byte| byte.is_ascii_digit())
+}
+
+fn percentage_field(data: &[u8]) -> Field {
+    let mut field = Field::new();
+    field.set(data);
+    field.trim();
+    if !is_percentage(&field) {
+        field.clear();
+    }
+    field
+}
+
+fn append_unique(output: &mut Field, value: &Field, separator: &[u8]) {
+    if value.len == 0 || output.contains(&value.data[..value.len]) {
+        return;
+    }
+    if output.len > 0 {
+        output.extend(separator);
+    }
+    output.extend(&value.data[..value.len]);
 }
 
 fn cpu_ticks(data: &[u8]) -> (u64, u64) {
@@ -879,7 +895,10 @@ fn nvidia_model(slot: &Field, field: &mut Field) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use super::{cpu_ticks, is_percentage, normalize_cpu};
+    use super::{
+        append_mode, append_nvml_result, append_unique, cpu_ticks, is_percentage, normalize_cpu,
+        percentage_field,
+    };
     use crate::model::Field;
 
     #[test]
@@ -894,6 +913,49 @@ mod tests {
         assert!(is_percentage(&field));
         field.set(b"N/A");
         assert!(!is_percentage(&field));
+    }
+
+    #[test]
+    fn parses_gpu_sysfs_fixture_values() {
+        let busy = percentage_field(b" 37\n");
+        assert_eq!(&busy.data[..busy.len], b"37");
+        assert!(percentage_field(b"not available").len == 0);
+    }
+
+    #[test]
+    fn combines_multiple_gpu_fixture_values_without_duplicates() {
+        let mut output = Field::new();
+        let first = percentage_field(b"12");
+        let second = percentage_field(b"88");
+        append_unique(&mut output, &first, b", ");
+        append_unique(&mut output, &second, b", ");
+        append_unique(&mut output, &first, b", ");
+        assert_eq!(&output.data[..output.len], b"12, 88");
+    }
+
+    #[test]
+    fn combines_connected_resolution_fixture_modes() {
+        let mut output = Field::new();
+        output.set(b"Unknown");
+        append_mode(&mut output, b"1920x1080\n");
+        append_mode(&mut output, b"2560x1440\n");
+        append_mode(&mut output, b"1920x1080\n");
+        assert_eq!(&output.data[..output.len], b"1920x1080, 2560x1440");
+    }
+
+    #[test]
+    fn accepts_valid_nvml_fixture_result() {
+        let mut output = Field::new();
+        append_nvml_result(&mut output, 0, 73);
+        assert_eq!(&output.data[..output.len], b"73%");
+    }
+
+    #[test]
+    fn rejects_failed_or_invalid_nvml_fixture_result() {
+        let mut output = Field::new();
+        append_nvml_result(&mut output, 999, 73);
+        append_nvml_result(&mut output, 0, 101);
+        assert_eq!(output.len, 0);
     }
 
     #[test]

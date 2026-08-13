@@ -15,3 +15,7 @@ show_process_memory=true
 Fields include distro, kernel, host, wm, de, term, shell, cpu, cpu_usage, gpu,
 memory, disk, load, resolution, board and uptime. Use `wm=name` to override
 window-manager detection when the session has no marker.
+.PP
+GPU usage uses AMD or Intel sysfs metrics when available. NVIDIA utilization is
+loaded from NVML only with `wolfetch -u`; otherwise unavailable utilization is
+reported as `N/A`.

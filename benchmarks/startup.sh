@@ -17,7 +17,8 @@ if ! command -v hyperfine >/dev/null 2>&1; then
 fi
 
 commands=(
-  wolfetch "$wolfetch_bin --plain"
+  wolfetch-default "$wolfetch_bin --plain"
+  wolfetch-gpu-usage "$wolfetch_bin --gpu-usage --plain"
   pfetch pfetch
   fastfetch "fastfetch --pipe"
   macchina macchina
