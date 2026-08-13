@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.0-pre.3
+
+- Simplified the repository homepage and moved installation details into one guide.
+- Added the project preview image and AUR `.SRCINFO` metadata.
+- Added a Debian package to release assets.
+
 ## 0.5.0-pre.2
 
 - Install both `wolfetch` and `wfetch` from package builds and release archives.

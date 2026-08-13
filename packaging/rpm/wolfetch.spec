@@ -4,7 +4,7 @@ Release: 0.1.pre1%{?dist}
 Summary: Tiny and fast system fetch for Linux and BSD
 License: GPL-3.0-only
 URL: https://github.com/TrueWulf/wolfetch
-Source0: https://github.com/TrueWulf/wolfetch/archive/refs/tags/v%{version}-pre.2.tar.gz
+Source0: https://github.com/TrueWulf/wolfetch/archive/refs/tags/v%{version}-pre.3.tar.gz
 
 %description
 wolfetch prints a concise system summary beside a minimal wolf. It does not
