@@ -84,6 +84,9 @@ Linux is the primary tested platform. FreeBSD, OpenBSD, NetBSD and DragonFly
 BSD are active pre-release targets. See the
 [platform support status](docs/platform-support.md) for details.
 
+If wolfetch is useful to you, you can support its development on
+[Ko-fi](https://ko-fi.com/truewulf/goal?g=0).
+
 ## License
 
 GPLv3. See [LICENSE](LICENSE).
