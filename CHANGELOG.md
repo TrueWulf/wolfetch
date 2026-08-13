@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.0
+
+- First stable release.
+- Includes Linux and BSD backends, both `wolfetch` and `wfetch` commands,
+  configuration, JSON output, man pages and shell completions.
+
 ## 0.5.0-pre.7
 
 - Fixed Debian asset naming so downloaded checksums match the published file.

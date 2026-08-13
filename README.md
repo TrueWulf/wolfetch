@@ -35,17 +35,21 @@ wolfetch --json
 
 ## Benchmark
 
-Measured locally on Arch Linux with 15 warm launches, wolfetch started about
-**9.6x faster than Fastfetch** and **35.2x faster than Macchina** in this test.
+Measured locally on Arch Linux with Hyperfine, 4 warmups and 30 measured
+launches, wolfetch started about **12.8x faster than Fastfetch**, **50.9x
+faster than Macchina**, **5.1x faster than pfetch**, and **2,168x faster than
+Screenfetch** in this test.
 These are local results, not universal performance guarantees. Macchina's wiki
 also reports **3.3 ms** on a different Intel i5-8265U Linux system using
 Hyperfine; that historical result is not mixed into this comparison.
 
 | Program | Median startup | Relative to wolfetch |
 | --- | ---: | ---: |
-| wolfetch | 0.768 ms | 1.0x |
-| Fastfetch | 7.349 ms | 9.6x slower |
-| Macchina | 27.032 ms | 35.2x slower |
+| wolfetch | 0.506 ms | 1.0x |
+| Fastfetch | 6.5 ms | 12.8x slower |
+| Macchina | 25.7 ms | 50.9x slower |
+| pfetch | 2.6 ms | 5.1x slower |
+| Screenfetch | 1.097 s | 2,168x slower |
 
 Fastfetch and Macchina were installed for the local run. Neofetch, Screenfetch,
 Pfetch, Ufetch, Hyfetch and Archey were also checked but were not installed in
