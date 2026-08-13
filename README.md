@@ -1,10 +1,16 @@
 # wolfetch
 
-> A tiny, fast system fetch for Linux and BSD.
+> Ultra-fast. Minimal by design. Built for Linux and BSD.
 
-wolfetch prints a clean system summary beside a minimal wolf. It is designed
-for terminals, starts quickly, has no runtime daemon, does not require
-systemd, and uses a small `key=value` configuration file.
+[![CI](https://github.com/TrueWulf/wolfetch/actions/workflows/ci.yml/badge.svg)](https://github.com/TrueWulf/wolfetch/actions/workflows/ci.yml)
+[![Latest release](https://img.shields.io/github/v/release/TrueWulf/wolfetch?include_prereleases&sort=semver)](https://github.com/TrueWulf/wolfetch/releases)
+[![License](https://img.shields.io/badge/license-GPLv3-blue.svg)](LICENSE)
+
+wolfetch prints a clean system summary beside a minimal wolf. Its main concept
+is simple: collect only useful local information, start almost instantly, and
+stay small enough to disappear into any terminal setup. There is no daemon,
+no systemd dependency, no shell command execution and no complicated config
+format.
 
 ## Preview
 
@@ -36,11 +42,11 @@ wolfetch --help
 
 ## Install
 
-Release archives and packages will be attached to the `0.5.0-pre.1` GitHub
-release. Distribution repositories may package a later version under their own
-review process.
+Choose the method for your system in the dedicated
+[Installation guide](docs/installation.md). The newest binaries and checksums
+are always in [GitHub Releases](https://github.com/TrueWulf/wolfetch/releases).
 
-### Binary archive
+### Fastest: binary archive
 
 Download the archive for your OS and architecture, then install it somewhere
 on `PATH`:
@@ -55,13 +61,17 @@ install -Dm755 wolfetch ~/.local/bin/wolfetch
 sudo apt install ./wolfetch_0.5.0-pre.1_amd64.deb
 ```
 
-### Arch Linux
+### Arch Linux and AUR
 
 ```sh
-makepkg -si
+git clone https://github.com/TrueWulf/wolfetch.git
+cd wolfetch
+cd packaging/arch
+makepkg -si -f
 ```
 
-After the package is available in AUR:
+The `PKGBUILD` is ready for AUR submission. Once the package is accepted by
+the AUR, install it with:
 
 ```sh
 yay -S wolfetch
@@ -70,14 +80,13 @@ paru -S wolfetch
 
 ### Alpine, Void and Slackware
 
-Packaging recipes are in `packaging/`. They can be used by Alpine
-`abuild`, Void `xbps-src` and Slackware `makepkg` without systemd.
+Packaging recipes are in `packaging/`. They are documented in the
+[Installation guide](docs/installation.md) and do not require systemd.
 
 ### BSD
 
-FreeBSD, OpenBSD, NetBSD and DragonFly BSD packaging files are in
-`packaging/bsd/`. Build from source with Cargo or use the matching release
-archive while the ports are reviewed by each project.
+FreeBSD, OpenBSD, NetBSD and DragonFly BSD are release targets. Use the
+matching archive or build from source while native ports are reviewed.
 
 ### Build from source
 
@@ -112,6 +121,12 @@ Available fields are `distro`, `kernel`, `host`, `wm`, `term`, `shell`,
 The order in `show=` controls the order of the information lines.
 
 See `docs/configuration.md` and `config.example` for all options.
+
+## Project Status
+
+`0.5.0-pre.1` is the first public pre-release. Linux is the primary tested
+platform. BSD backends and package recipes are included for native testing and
+will be promoted to stable support after their CI and smoke tests pass.
 
 ## Platforms
 
