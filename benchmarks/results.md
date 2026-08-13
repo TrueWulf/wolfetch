@@ -29,6 +29,17 @@ representative of every system.
 
 | Program | Median | Minimum | Maximum |
 | --- | ---: | ---: | ---: |
-| wolfetch | 0.783 ms | 0.657 ms | 0.861 ms |
-| Fastfetch | 6.737 ms | 6.027 ms | 7.852 ms |
-| Macchina | 26.362 ms | 25.185 ms | 32.423 ms |
+| wolfetch | 0.768 ms | 0.688 ms | 0.895 ms |
+| Fastfetch | 7.349 ms | 6.385 ms | 8.597 ms |
+| Macchina | 27.032 ms | 24.029 ms | 28.758 ms |
+
+## External Reference
+
+Macchina's historical benchmark page reports 3.3 ms on Linux with an Intel
+Core i5-8265U and Hyperfine flags `-w 4 -m 500 -N`. It is included for context
+only: the hardware, software versions, flags and date differ from this run.
+
+## Other Fetch Commands Checked
+
+The following commands were checked in the local environment and were not
+installed: `neofetch`, `screenfetch`, `pfetch`, `ufetch`, `hyfetch`, `archey`.

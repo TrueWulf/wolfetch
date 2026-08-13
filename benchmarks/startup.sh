@@ -58,3 +58,9 @@ printf 'startup benchmark: %s iterations, output redirected\n' "$iterations"
 measure wolfetch "$wolfetch_bin"
 measure fastfetch fastfetch
 measure macchina macchina
+measure neofetch neofetch
+measure screenfetch screenfetch
+measure pfetch pfetch
+measure ufetch ufetch
+measure hyfetch hyfetch
+measure archey archey
