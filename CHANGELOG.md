@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.0-pre.4
+
+- Added a release workflow for Debian packages.
+- Kept the homepage minimal and moved install commands into `Installation`.
+- Added the preview image and AUR metadata to the repository.
+
 ## 0.5.0-pre.3
 
 - Simplified the repository homepage and moved installation details into one guide.

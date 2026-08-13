@@ -54,7 +54,7 @@ sudo pacman -U wolfetch-*.pkg.tar.zst
 Download the `.deb` package from Releases and install it with:
 
 ```sh
-sudo apt install ./wolfetch-*.deb
+sudo apt install ./wolfetch_*.deb
 ```
 
 Direct `.deb` installation works immediately. `apt install wolfetch` will be

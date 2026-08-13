@@ -33,8 +33,66 @@ jobs:
           name: wolfetch-${{ matrix.target }}
           path: dist/*
 
+  debian:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo build --release --locked
+      - name: Package Debian archive
+        shell: bash
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          deb_version="${version/-/~}"
+          root="${RUNNER_TEMP}/wolfetch-deb"
+          mkdir -p "$root/DEBIAN" "$root/usr/bin" \
+            "$root/usr/share/man/man1" "$root/usr/share/man/man5" \
+            "$root/usr/share/doc/wolfetch" dist
+          cat > "$root/DEBIAN/control" <<EOF
+          Package: wolfetch
+          Version: ${deb_version}-1
+          Section: utils
+          Priority: optional
+          Architecture: amd64
+          Maintainer: wolfetch contributors
+          Description: tiny and fast system fetch for Linux and BSD
+           wolfetch prints a concise system summary beside a minimal wolf.
+           It does not require systemd or a background service.
+          EOF
+          install -m755 target/release/wolfetch "$root/usr/bin/wolfetch"
+          install -m755 target/release/wfetch "$root/usr/bin/wfetch"
+          install -m644 man/wolfetch.1 "$root/usr/share/man/man1/wolfetch.1"
+          install -m644 man/wolfetch.5 "$root/usr/share/man/man5/wolfetch.5"
+          install -m644 LICENSE README.md config.example \
+            "$root/usr/share/doc/wolfetch/"
+          dpkg-deb --build --root-owner-group "$root" \
+            "dist/wolfetch_${deb_version}-1_amd64.deb"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wolfetch-debian
+          path: dist/*.deb
+
+  source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Package source archive
+        shell: bash
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          mkdir -p dist
+          git archive --format=tar.gz \
+            --prefix="wolfetch-${version}/" "$GITHUB_REF_NAME" -- . \
+            ':(exclude)packaging/arch' > "dist/wolfetch-${version}.tar.gz"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wolfetch-source
+          path: dist/*.tar.gz
+
   publish:
-    needs: linux
+    needs: [linux, debian, source]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
