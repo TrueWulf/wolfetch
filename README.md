@@ -36,31 +36,15 @@ wolfetch --json
 
 ## Benchmark
 
-Measured locally on Arch Linux with Hyperfine, 4 warmups and 30 measured
-launches, wolfetch started about **11.5x faster than Fastfetch**, **46.9x
-faster than Macchina**, and **4.6x faster than pfetch** in this test.
-These are local results, not universal performance guarantees. Macchina's wiki
-also reports **3.3 ms** on a different Intel i5-8265U Linux system using
-Hyperfine; that historical result is not mixed into this comparison.
-
-| Program | Median startup | Relative to wolfetch |
-| --- | ---: | ---: |
-| wolfetch | 0.551 ms | 1.0x |
-| Fastfetch | 6.4 ms | 11.5x slower |
-| Macchina | 25.8 ms | 46.9x slower |
-| pfetch | 2.5 ms | 4.6x slower |
-Fastfetch, Macchina and pfetch-rs were installed for the local run. The
-benchmark compares each program's default output and data collection; it does
-not claim that one implementation or language is universally faster.
+Honest local Hyperfine benchmark for wolfetch, pfetch-rs, Fastfetch and
+Macchina. See [`benchmarks/results.md`](benchmarks/results.md) for hardware,
+versions, commands and measured output.
 
 Run the reproducible benchmark yourself:
 
 ```sh
 bash benchmarks/startup.sh
 ```
-
-See the recorded run and test conditions in
-[`benchmarks/results.md`](benchmarks/results.md).
 
 ## Installation
 

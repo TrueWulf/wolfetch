@@ -1,4 +1,4 @@
-pub const VERSION: &[u8] = b"0.5.1";
+pub const VERSION: &[u8] = b"0.5.2";
 pub const FIELD_DISTRO: u16 = 1 << 0;
 pub const FIELD_KERNEL: u16 = 1 << 1;
 pub const FIELD_WM: u16 = 1 << 2;
@@ -102,7 +102,7 @@ impl Field {
     }
 
     pub fn is_unknown(&self) -> bool {
-        self.data[..self.len] == *b"Unknown"
+        self.data[..self.len] == *b"Unknown" || self.data[..self.len] == *b"N/A"
     }
 
     pub fn slash_tail(&mut self) {
@@ -252,6 +252,7 @@ impl Palette {
 pub struct Config {
     pub theme: Palette,
     pub show: u16,
+    pub wm_override: Field,
     pub logo: bool,
     pub runtime: bool,
     pub process_memory: bool,
@@ -264,6 +265,7 @@ impl Config {
         Self {
             theme: Palette::royal(),
             show: FIELD_DEFAULT,
+            wm_override: Field::new(),
             logo: true,
             runtime: true,
             process_memory: true,
@@ -275,6 +277,8 @@ impl Config {
 
 pub struct Info {
     pub values: [Field; 16],
+    pub cpu_usage: Field,
+    pub gpu_usage: Field,
     pub elapsed_us: u64,
     pub rss_kb: u64,
 }

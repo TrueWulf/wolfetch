@@ -2,17 +2,20 @@
 
 This is a local startup measurement, not a universal performance claim. Each
 program is launched as a fresh process with output redirected to `/dev/null`.
-Hyperfine 1.20.0 performs four warmups and 30 measured runs with shell startup
-disabled (`--shell=none`). The commands use their default output and options.
+Hyperfine performs five warmups and 50 measured runs with shell startup
+disabled (`--shell=none`). This compares default data collection; wolfetch is
+run with `--plain`, pfetch-rs with its default command, Fastfetch with
+`--pipe`, and Macchina with its default command. wolfetch's CPU usage read is
+included in the startup measurement.
 
 ## Environment
 
 - Host: AMD Ryzen 7 5700X, 8 cores
 - OS: Arch Linux
-- wolfetch: `0.5.1`, built from this checkout with `cargo build --release`
+- wolfetch: `0.5.2`, built from this checkout with `cargo build --release`
 - Fastfetch: `2.66.0`
 - Macchina: `6.4.0`
-- Timer: Hyperfine `1.20.0`, `--warmup 4 --runs 30 --shell=none`
+- Timer: Hyperfine `1.20.0`, `--warmup 5 --runs 50 --shell=none`
 - Output: redirected to `/dev/null`
 
 ## Measured Run
@@ -20,7 +23,7 @@ disabled (`--shell=none`). The commands use their default output and options.
 Command:
 
 ```sh
-bash benchmarks/startup.sh 30 4
+bash benchmarks/startup.sh
 ```
 
 The benchmark should be rerun after hardware, operating-system, or package
@@ -29,10 +32,10 @@ representative of every system.
 
 | Program | Mean | Minimum | Maximum |
 | --- | ---: | ---: | ---: |
-| wolfetch | 0.551 ms | 0.434 ms | 0.666 ms |
-| Fastfetch | 6.4 ms | 5.7 ms | 7.7 ms |
-| Macchina | 25.8 ms | 23.9 ms | 27.5 ms |
-| pfetch | 2.5 ms | 2.2 ms | 2.9 ms |
+| wolfetch | 650.6 us | 575.7 us | 808.6 us |
+| pfetch-rs | 2.6 ms | 2.2 ms | 3.1 ms |
+| Fastfetch | 6.6 ms | 5.5 ms | 7.9 ms |
+| Macchina | 25.9 ms | 23.5 ms | 28.5 ms |
 
 ## External Reference
 

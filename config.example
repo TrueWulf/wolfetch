@@ -3,6 +3,8 @@ show=distro,kernel,wm,term,shell,cpu,gpu,memory,uptime
 logo=wolf
 show_runtime=true
 show_process_memory=true
+# Set this only when the session does not expose a window-manager marker.
+# wm=dwl
 color_art=27
 color_art_light=75
 color_shadow=243

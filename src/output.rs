@@ -112,7 +112,19 @@ pub fn render(info: &Info, config: &Config, plain: bool, no_logo: bool, json: bo
                 config.theme.label,
                 colors,
             );
-            value(&mut buffer, &info.values[index], config.theme.value, colors);
+            value(
+                &mut buffer,
+                &info.values[index],
+                if index == 5 {
+                    Some(&info.cpu_usage)
+                } else if index == 6 {
+                    Some(&info.gpu_usage)
+                } else {
+                    None
+                },
+                config.theme.value,
+                colors,
+            );
             buffer.push(b'\n');
             if index == 8 && service.len > 0 {
                 write_service(&mut buffer, &service, config, logo, colors);
@@ -175,13 +187,18 @@ fn label(buffer: &mut Buffer, text: &[u8], width: usize, color: u8, colors: bool
     }
 }
 
-fn value(buffer: &mut Buffer, field: &Field, color: u8, colors: bool) {
+fn value(buffer: &mut Buffer, field: &Field, usage: Option<&Field>, color: u8, colors: bool) {
     if colors {
         buffer.color(color);
     }
     buffer.extend(&field.data[..field.len]);
     if field.truncated {
         buffer.extend(b"...");
+    }
+    if let Some(usage) = usage {
+        buffer.extend(b" (");
+        buffer.extend(&usage.data[..usage.len]);
+        buffer.push(b')');
     }
     if colors {
         buffer.reset();
@@ -259,6 +276,15 @@ fn render_json(info: &Info, config: &Config) {
         );
         if info.values[index].truncated {
             buffer.extend(b"...");
+        }
+        if index == 5 {
+            buffer.extend(b" (");
+            buffer.extend(&info.cpu_usage.data[..info.cpu_usage.len]);
+            buffer.push(b')');
+        } else if index == 6 {
+            buffer.extend(b" (");
+            buffer.extend(&info.gpu_usage.data[..info.gpu_usage.len]);
+            buffer.push(b')');
         }
         buffer.push(b'"');
     }

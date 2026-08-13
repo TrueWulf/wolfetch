@@ -1,5 +1,5 @@
 Name: wolfetch
-Version: 0.5.1
+Version: 0.5.2
 Release: 1%{?dist}
 Summary: Tiny and fast system fetch for Linux and BSD
 License: GPL-3.0-only

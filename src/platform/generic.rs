@@ -29,7 +29,15 @@ pub fn collect(_: &Config, _: u64) -> Info {
     }
     Info {
         values,
+        cpu_usage: unknown(),
+        gpu_usage: unknown(),
         elapsed_us: 0,
         rss_kb: 0,
     }
+}
+
+fn unknown() -> Field {
+    let mut field = Field::new();
+    field.set(b"N/A");
+    field
 }

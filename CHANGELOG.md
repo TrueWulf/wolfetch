@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.2
+
+- Add CPU usage to CPU output and dependency-free GPU usage where Linux sysfs exposes it.
+- Improve multi-GPU detection and preserve GPU uevent metadata while reading model names.
+- Refresh the local benchmark definition and preview image.
+
 ## 0.5.1
 
 - Added `--minimal` output mode.

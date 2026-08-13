@@ -65,6 +65,9 @@ fn apply_line(config: &mut Config, line: &[u8]) {
         set_theme(config, value);
     } else if key == b"show" {
         set_fields(config, value);
+    } else if key == b"wm" {
+        config.wm_override.set(value);
+        config.wm_override.trim();
     } else if key == b"logo" {
         config.logo = value != b"none";
     } else if key == b"show_runtime" {
@@ -140,7 +143,7 @@ fn set_fields(config: &mut Config, value: &[u8]) {
 
 #[cfg(test)]
 mod tests {
-    use super::{Config, set_fields};
+    use super::{Config, apply_line, set_fields};
     use crate::model::{FIELD_CPU_USAGE, FIELD_DISK, FIELD_HOST};
 
     #[test]
@@ -168,6 +171,13 @@ mod tests {
         set_fields(&mut config, b"all");
         assert_eq!(config.order_len, 16);
         assert_eq!(config.show, crate::model::FIELD_ALL);
+    }
+
+    #[test]
+    fn accepts_window_manager_override() {
+        let mut config = Config::new();
+        apply_line(&mut config, b"wm=dwl");
+        assert_eq!(&config.wm_override.data[..config.wm_override.len], b"dwl");
     }
 }
 

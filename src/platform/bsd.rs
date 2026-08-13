@@ -140,9 +140,17 @@ pub fn collect(config: &Config, start: u64) -> Info {
     fill_unknown(&mut values);
     Info {
         values,
+        cpu_usage: unknown(),
+        gpu_usage: unknown(),
         elapsed_us: now().saturating_sub(start),
         rss_kb: 0,
     }
+}
+
+fn unknown() -> Field {
+    let mut field = Field::new();
+    field.set(b"N/A");
+    field
 }
 
 fn copy_text(source: &[u8], field: &mut Field, available: bool) {

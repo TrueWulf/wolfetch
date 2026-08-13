@@ -14,7 +14,6 @@ unsafe extern "C" {
     fn read(fd: i32, buffer: *mut u8, length: usize) -> isize;
     fn gethostname(name: *mut u8, length: usize) -> i32;
     fn statvfs(path: *const u8, info: *mut Statvfs) -> i32;
-    fn nanosleep(request: *const Timespec, remain: *mut Timespec) -> i32;
     pub fn write(fd: i32, buffer: *const u8, length: usize) -> isize;
 }
 
@@ -89,6 +88,11 @@ pub fn copy_cstr(pointer: *const u8, output: &mut [u8]) -> usize {
 pub fn collect(config: &Config, start: u64) -> Info {
     let mut values = [Field::new(); 16];
     let mut file = [0; 2048];
+    let cpu_sample = if config.show & (FIELD_CPU | FIELD_CPU_USAGE) != 0 {
+        read_cpu_ticks()
+    } else {
+        (0, 0)
+    };
     if config.show & FIELD_DISTRO != 0 {
         let size = read_file(b"/etc/os-release\0", &mut file);
         line_value(&file[..size], b"NAME=", &mut values[0]);
@@ -100,7 +104,7 @@ pub fn collect(config: &Config, start: u64) -> Info {
     }
     let mut desktop = Field::new();
     if config.show & FIELD_WM != 0 {
-        wm_value(&mut desktop);
+        wm_value(&mut desktop, &config.wm_override);
         values[2].set(&desktop.data[..desktop.len]);
     }
     if config.show & FIELD_TERM != 0 {
@@ -145,9 +149,6 @@ pub fn collect(config: &Config, start: u64) -> Info {
             values[13].set(b"Unknown");
         }
     }
-    if config.show & FIELD_CPU_USAGE != 0 {
-        cpu_usage_value(&mut values[14]);
-    }
     let rss_kb = if config.process_memory {
         let size = read_file(b"/proc/self/status\0", &mut file);
         let mut rss = Field::new();
@@ -156,14 +157,35 @@ pub fn collect(config: &Config, start: u64) -> Info {
     } else {
         0
     };
+    let cpu_usage = if config.show & (FIELD_CPU | FIELD_CPU_USAGE) != 0 {
+        cpu_usage_value(cpu_sample)
+    } else {
+        unknown()
+    };
+    if config.show & FIELD_CPU_USAGE != 0 {
+        values[14] = cpu_usage;
+    }
+    let gpu_usage = if config.show & FIELD_GPU != 0 {
+        gpu_usage_value()
+    } else {
+        unknown()
+    };
     if config.show & FIELD_DE != 0 {
         de_value(&mut values[15]);
     }
     Info {
         values,
+        cpu_usage,
+        gpu_usage,
         elapsed_us: now().saturating_sub(start),
         rss_kb,
     }
+}
+
+fn unknown() -> Field {
+    let mut field = Field::new();
+    field.set(b"N/A");
+    field
 }
 
 fn env_value(name: &[u8], field: &mut Field) {
@@ -176,17 +198,36 @@ fn env_value(name: &[u8], field: &mut Field) {
     }
 }
 
-fn wm_value(field: &mut Field) {
+fn wm_value(field: &mut Field, override_value: &Field) {
+    if override_value.len > 0 {
+        field.set(&override_value.data[..override_value.len]);
+        return;
+    }
     field.set(b"Unknown");
     if env_copy(b"HYPRLAND_INSTANCE_SIGNATURE\0", &mut field.data) > 0 {
         field.set(b"Hyprland");
     } else if env_copy(b"SWAYSOCK\0", &mut field.data) > 0 {
         field.set(b"Sway");
+    } else if env_copy(b"NIRI_SOCKET\0", &mut field.data) > 0 {
+        field.set(b"niri");
+    } else if env_copy(b"RIVER_SOCKET\0", &mut field.data) > 0 {
+        field.set(b"river");
     } else if env_copy(b"I3SOCK\0", &mut field.data) > 0 {
         field.set(b"i3");
     } else if env_copy(b"BSPWM_SOCKET\0", &mut field.data) > 0 {
         field.set(b"bspwm");
     } else {
+        for name in [
+            b"XDG_CURRENT_DESKTOP\0".as_slice(),
+            b"XDG_SESSION_DESKTOP\0".as_slice(),
+            b"DESKTOP_SESSION\0".as_slice(),
+        ] {
+            let mut session = Field::new();
+            env_value(name, &mut session);
+            if session_wm(&session, field) {
+                return;
+            }
+        }
         let mut desktop = Field::new();
         de_value(&mut desktop);
         if desktop.data[..desktop.len] == *b"GNOME" {
@@ -201,7 +242,56 @@ fn wm_value(field: &mut Field) {
             field.set(b"Muffin");
         } else if desktop.data[..desktop.len] == *b"MATE" {
             field.set(b"Marco");
+        } else if desktop.data[..desktop.len] == *b"niri" {
+            field.set(b"niri");
+        } else if desktop.data[..desktop.len] == *b"river" {
+            field.set(b"river");
+        } else if desktop.data[..desktop.len] == *b"DWM" {
+            field.set(b"dwm");
+        } else if desktop.data[..desktop.len] == *b"dwl" {
+            field.set(b"dwl");
+        } else if desktop.data[..desktop.len] == *b"awesome" {
+            field.set(b"awesome");
+        } else if desktop.data[..desktop.len] == *b"openbox" {
+            field.set(b"Openbox");
+        } else if desktop.data[..desktop.len] == *b"xmonad" {
+            field.set(b"XMonad");
         }
+    }
+}
+
+fn session_wm(session: &Field, field: &mut Field) -> bool {
+    let value = &session.data[..session.len];
+    let name = if value == b"Hyprland" {
+        Some(b"Hyprland".as_slice())
+    } else if value == b"sway" || value == b"Sway" {
+        Some(b"Sway".as_slice())
+    } else if value == b"niri" {
+        Some(b"niri".as_slice())
+    } else if value == b"river" {
+        Some(b"river".as_slice())
+    } else if value == b"i3" {
+        Some(b"i3".as_slice())
+    } else if value == b"bspwm" {
+        Some(b"bspwm".as_slice())
+    } else if value == b"dwm" || value == b"DWM" {
+        Some(b"dwm".as_slice())
+    } else if value == b"dwl" {
+        Some(b"dwl".as_slice())
+    } else if value == b"awesome" {
+        Some(b"awesome".as_slice())
+    } else if value == b"openbox" || value == b"Openbox" {
+        Some(b"Openbox".as_slice())
+    } else if value == b"xmonad" || value == b"XMonad" {
+        Some(b"XMonad".as_slice())
+    } else {
+        None
+    };
+    if let Some(name) = name {
+        field.set(name);
+        true
+    } else {
+        false
     }
 }
 
@@ -226,6 +316,13 @@ fn is_compositor_name(field: &Field) -> bool {
         || field.data[..field.len] == *b"Sway"
         || field.data[..field.len] == *b"i3"
         || field.data[..field.len] == *b"bspwm"
+        || field.data[..field.len] == *b"niri"
+        || field.data[..field.len] == *b"river"
+        || field.data[..field.len] == *b"DWM"
+        || field.data[..field.len] == *b"dwl"
+        || field.data[..field.len] == *b"awesome"
+        || field.data[..field.len] == *b"openbox"
+        || field.data[..field.len] == *b"xmonad"
 }
 
 fn canonical_desktop(field: &mut Field) {
@@ -257,6 +354,7 @@ fn line_value(data: &[u8], key: &[u8], field: &mut Field) {
 fn read_cpu(field: &mut Field) {
     let mut data = [0; 512];
     let size = read_file(b"/proc/cpuinfo\0", &mut data);
+    field.clear();
     for key in [
         b"model name".as_slice(),
         b"Hardware".as_slice(),
@@ -265,14 +363,22 @@ fn read_cpu(field: &mut Field) {
         for line in data[..size].split(|byte| *byte == b'\n') {
             if line.starts_with(key) {
                 if let Some(index) = line.iter().position(|byte| *byte == b':') {
-                    field.extend(&line[index + 1..]);
-                    field.trim();
-                    if !field.is_unknown() {
-                        return;
+                    let mut model = Field::new();
+                    model.extend(&line[index + 1..]);
+                    model.trim();
+                    normalize_cpu(&mut model);
+                    if model.len > 0 && !field.contains(&model.data[..model.len]) {
+                        if field.len > 0 {
+                            field.extend(b", ");
+                        }
+                        field.extend(&model.data[..model.len]);
                     }
                 }
             }
         }
+    }
+    if field.len > 0 {
+        return;
     }
     let mut fallback = [0; 128];
     let size = read_file(b"/sys/devices/virtual/dmi/id/product_name\0", &mut fallback);
@@ -283,6 +389,22 @@ fn read_cpu(field: &mut Field) {
     if field.len == 0 {
         field.set(b"Unknown");
     }
+}
+
+fn normalize_cpu(field: &mut Field) {
+    for marker in [b"(R) ".as_slice(), b"(TM) ".as_slice()] {
+        while let Some(index) = find_bytes(field, marker) {
+            let end = index + marker.len();
+            field.data.copy_within(end..field.len, index);
+            field.len -= marker.len();
+        }
+    }
+}
+
+fn find_bytes(field: &Field, needle: &[u8]) -> Option<usize> {
+    field.data[..field.len]
+        .windows(needle.len())
+        .position(|window| window == needle)
 }
 
 fn memory_value(data: &[u8], field: &mut Field) {
@@ -376,6 +498,7 @@ fn disk_value(field: &mut Field) {
 
 fn resolution_value(field: &mut Field) {
     field.set(b"Unknown");
+    let mut found = false;
     let connectors = [
         b"HDMI-A-1\0".as_slice(),
         b"HDMI-A-2\0".as_slice(),
@@ -441,37 +564,83 @@ fn resolution_value(field: &mut Field) {
                 end -= 1;
             }
             if end > 0 {
-                field.set(&data[..end]);
-            }
-            field.trim();
-            if !field.is_unknown() {
-                return;
+                let mut mode = Field::new();
+                mode.set(&data[..end]);
+                mode.trim();
+                if !mode.is_unknown() && !field.contains(&mode.data[..mode.len]) {
+                    if !found {
+                        field.clear();
+                        found = true;
+                    } else {
+                        field.extend(b", ");
+                    }
+                    field.extend(&mode.data[..mode.len]);
+                }
             }
         }
     }
 }
 
-fn cpu_usage_value(field: &mut Field) {
-    let mut before = [0; 512];
-    let first_size = read_file(b"/proc/stat\0", &mut before);
-    let sleep = Timespec {
-        seconds: 0,
-        nanos: 20_000_000,
-    };
-    unsafe { nanosleep(&sleep, core::ptr::null_mut()) };
-    let mut after = [0; 512];
-    let second_size = read_file(b"/proc/stat\0", &mut after);
-    let (before_total, before_idle) = cpu_ticks(&before[..first_size]);
-    let (after_total, after_idle) = cpu_ticks(&after[..second_size]);
-    let total = after_total.saturating_sub(before_total);
-    let idle = after_idle.saturating_sub(before_idle);
-    if total == 0 {
-        field.set(b"Unknown");
-        return;
+fn cpu_usage_value(sample: (u64, u64)) -> Field {
+    let mut field = Field::new();
+    if sample.0 == 0 {
+        return unknown();
     }
-    field.clear();
-    field.u64(total.saturating_sub(idle) * 100 / total);
+    field.u64(sample.0.saturating_sub(sample.1) * 100 / sample.0);
     field.push(b'%');
+    field
+}
+
+fn read_cpu_ticks() -> (u64, u64) {
+    let mut data = [0; 512];
+    let size = read_file(b"/proc/stat\0", &mut data);
+    cpu_ticks(&data[..size])
+}
+
+fn gpu_usage_value() -> Field {
+    let mut output = Field::new();
+    let mut found = false;
+    for card in 0..8u8 {
+        let mut path = [0; 96];
+        let len = device_path(&mut path, card, b"/device/gpu_busy_percent\0");
+        let mut data = [0; 32];
+        let mut usage = Field::new();
+        let size = read_file(&path[..len], &mut data);
+        if size > 0 {
+            usage.set(&data[..size]);
+            usage.trim();
+            if !is_percentage(&usage) {
+                usage.clear();
+            }
+        }
+        if usage.len == 0 {
+            let len = device_path(&mut path, card, b"/gt_busy_percent\0");
+            let size = read_file(&path[..len], &mut data);
+            if size > 0 {
+                usage.set(&data[..size]);
+                usage.trim();
+                if !is_percentage(&usage) {
+                    usage.clear();
+                }
+            }
+        }
+        if usage.len > 0 {
+            if found {
+                output.extend(b", ");
+            }
+            output.extend(&usage.data[..usage.len]);
+            output.push(b'%');
+            found = true;
+        }
+    }
+    if found { output } else { unknown() }
+}
+
+fn is_percentage(field: &Field) -> bool {
+    field.len > 0
+        && field.data[..field.len]
+            .iter()
+            .all(|byte| byte.is_ascii_digit())
 }
 
 fn cpu_ticks(data: &[u8]) -> (u64, u64) {
@@ -499,16 +668,17 @@ fn cpu_ticks(data: &[u8]) -> (u64, u64) {
 fn gpu_value(field: &mut Field) {
     field.set(b"Unknown");
     let mut found = false;
-    let mut data = [0; 512];
+    let mut uevent = [0; 512];
+    let mut metadata = [0; 512];
     for card in 0..8u8 {
         let mut path = [0; 96];
         let len = device_path(&mut path, card, b"/device/uevent\0");
-        let size = read_file(&path[..len], &mut data);
+        let size = read_file(&path[..len], &mut uevent);
         if size == 0 {
             continue;
         }
         let mut driver = Field::new();
-        line_value(&data[..size], b"DRIVER=", &mut driver);
+        line_value(&uevent[..size], b"DRIVER=", &mut driver);
         let mut model = Field::new();
         for suffix in [
             b"/device/product_name\0".as_slice(),
@@ -516,9 +686,9 @@ fn gpu_value(field: &mut Field) {
             b"/device/label\0".as_slice(),
         ] {
             let model_len = device_path(&mut path, card, suffix);
-            let model_size = read_file(&path[..model_len], &mut data);
+            let model_size = read_file(&path[..model_len], &mut metadata);
             if model_size > 0 {
-                model.set(&data[..model_size]);
+                model.set(&metadata[..model_size]);
                 model.trim();
                 if !model.is_unknown() {
                     break;
@@ -528,7 +698,7 @@ fn gpu_value(field: &mut Field) {
         let mut detected = Field::new();
         if driver.data[..driver.len] == *b"nvidia" {
             let mut slot = Field::new();
-            line_value(&data[..size], b"PCI_SLOT_NAME=", &mut slot);
+            line_value(&uevent[..size], b"PCI_SLOT_NAME=", &mut slot);
             if !nvidia_model(&slot, &mut detected) {
                 detected.set(b"NVIDIA");
             }
@@ -540,6 +710,7 @@ fn gpu_value(field: &mut Field) {
             detected.set(b"Intel Graphics");
         }
         if detected.len > 0 && !detected.is_unknown() {
+            normalize_gpu(&mut detected);
             if !found {
                 field.clear();
                 found = true;
@@ -551,6 +722,16 @@ fn gpu_value(field: &mut Field) {
     }
     if !found {
         field.set(b"Unknown");
+    }
+}
+
+fn normalize_gpu(field: &mut Field) {
+    for marker in [b"(R) ".as_slice(), b"(TM) ".as_slice()] {
+        while let Some(index) = find_bytes(field, marker) {
+            let end = index + marker.len();
+            field.data.copy_within(end..field.len, index);
+            field.len -= marker.len();
+        }
     }
 }
 
@@ -597,4 +778,32 @@ fn nvidia_model(slot: &Field, field: &mut Field) -> bool {
     }
     line_value(&data[..size], b"Model:", field);
     field.len > 0 && field.data[..field.len] != *b"Unknown"
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{cpu_ticks, is_percentage, normalize_cpu};
+    use crate::model::Field;
+
+    #[test]
+    fn parses_cpu_ticks_from_proc_stat() {
+        assert_eq!(cpu_ticks(b"cpu  10 20 30 40 5 6\ncpu0 1 2"), (111, 45));
+    }
+
+    #[test]
+    fn accepts_only_numeric_gpu_usage() {
+        let mut field = Field::new();
+        field.set(b"42");
+        assert!(is_percentage(&field));
+        field.set(b"N/A");
+        assert!(!is_percentage(&field));
+    }
+
+    #[test]
+    fn normalizes_cpu_vendor_markers() {
+        let mut field = Field::new();
+        field.set(b"AMD (R) Ryzen (TM) 7");
+        normalize_cpu(&mut field);
+        assert_eq!(&field.data[..field.len], b"AMD Ryzen 7");
+    }
 }

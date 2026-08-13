@@ -18,12 +18,21 @@ wolfetch checks `${XDG_CONFIG_HOME}/wolfetch/config`, then
 | `logo` | `wolf`, `none` | `wolf` |
 | `show_runtime` | `true`, `false` | `true` |
 | `show_process_memory` | `true`, `false` | `true` |
+| `wm` | window manager name | auto-detected |
 
 The field names are `distro`, `kernel`, `host`, `wm`, `de`, `term`, `shell`,
 `cpu`, `cpu_usage`, `gpu`, `memory`, `disk`, `load`, `resolution`, `board` and
 `uptime`. `wm` is the compositor/window manager; `de` is the desktop
 environment when the session exposes one. `load` means load average;
-`cpu_usage` samples CPU activity.
+`cpu_usage` reports the cumulative system CPU activity from `/proc/stat`. The
+default `CPU` and `GPU` values include
+usage in parentheses, for example `CPU: AMD Ryzen 7 (7%)` and
+`GPU: NVIDIA GeForce RTX (N/A)`. GPU usage is reported only when a supported
+Linux sysfs metric is available.
+
+Set `wm=dwl` (or another name) when a window manager does not expose a stable
+session marker. The override is explicit rather than guessing from unrelated
+processes.
 
 ## Colors
 

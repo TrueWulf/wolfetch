@@ -1,11 +1,11 @@
 pkgbase = wolfetch
 	pkgdesc = A tiny, fast system fetch for Linux and BSD
-	pkgver = 0.5.1
+	pkgver = 0.5.2
 	pkgrel = 1
 	url = https://github.com/TrueWulf/wolfetch
 	arch = x86_64
 	license = GPL3
-	source = wolfetch-0.5.1.tar.gz::https://github.com/TrueWulf/wolfetch/releases/download/v0.5.1/wolfetch-0.5.1.tar.gz
-	sha256sums = b30e954de10388309c491587287384bfb13f4088bcc33e92822146691a53f3b8
+	source = wolfetch-0.5.2.tar.gz::https://github.com/TrueWulf/wolfetch/releases/download/v0.5.2/wolfetch-0.5.2.tar.gz
+	sha256sums = SKIP
 
 pkgname = wolfetch

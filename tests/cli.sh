@@ -4,7 +4,7 @@ set -euo pipefail
 bin="${1:?path to wolfetch binary required}"
 
 version="$($bin --version)"
-[[ "$version" == "wolfetch 0.5.1" ]]
+[[ "$version" == "wolfetch 0.5.2" ]]
 
 help="$($bin --help)"
 grep -F -- '--minimal' <<<"$help" >/dev/null
@@ -14,6 +14,10 @@ minimal="$($bin --minimal --plain)"
 [[ "$minimal" != *'CPU :'* ]]
 [[ "$minimal" != *'GPU :'* ]]
 [[ "$minimal" != *$'\e['* ]]
+
+full="$($bin --plain)"
+grep -E '^CPU +: .+ \([^)]*\)$' <<<"$full" >/dev/null
+grep -E '^GPU +: .+ \([^)]*\)$' <<<"$full" >/dev/null
 
 json="$($bin --json)"
 python -c 'import json, sys; data = json.loads(sys.stdin.read()); assert data["Distro"]; assert data["WM"]; assert "startup_ms" in data' <<<"$json"
