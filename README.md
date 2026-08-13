@@ -2,11 +2,15 @@
 
 > Ultra-fast. Minimal by design.
 
-[![CI](https://github.com/TrueWulf/wolfetch/actions/workflows/ci.yml/badge.svg)](https://github.com/TrueWulf/wolfetch/actions/workflows/ci.yml)
-[![Latest release](https://img.shields.io/github/v/release/TrueWulf/wolfetch?include_prereleases&sort=semver)](https://github.com/TrueWulf/wolfetch/releases)
-[![License](https://img.shields.io/badge/license-GPLv3-blue.svg)](LICENSE)
+<p align="center">
+  <a href="https://github.com/TrueWulf/wolfetch/actions/workflows/ci.yml"><img src="https://github.com/TrueWulf/wolfetch/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/TrueWulf/wolfetch/releases"><img src="https://img.shields.io/github/v/release/TrueWulf/wolfetch?include_prereleases&sort=semver" alt="Latest release"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPLv3-blue.svg" alt="License"></a>
+</p>
 
-![wolfetch preview](wolfetch-fetch.png)
+<p align="center">
+  <img src="wolfetch-fetch.png" alt="wolfetch preview" width="720">
+</p>
 
 wolfetch is a small command-line system summary with a minimal wolf beside it.
 It starts almost instantly, stays easy to understand, and gives you useful
@@ -31,6 +35,27 @@ wolfetch --json
 - Simple `key=value` configuration.
 - No system service or runtime daemon.
 - No shell commands executed from configuration.
+
+## Benchmark
+
+Measured locally on Arch Linux with 15 warm launches, wolfetch started about
+**8.6x faster than Fastfetch** and **33.7x faster than Macchina** in this test.
+These are local results, not universal performance guarantees.
+
+| Program | Median startup | Relative to wolfetch |
+| --- | ---: | ---: |
+| wolfetch | 0.783 ms | 1.0x |
+| Fastfetch | 6.737 ms | 8.6x slower |
+| Macchina | 26.362 ms | 33.7x slower |
+
+Run the reproducible benchmark yourself:
+
+```sh
+bash benchmarks/startup.sh
+```
+
+See the recorded run and test conditions in
+[`benchmarks/results.md`](benchmarks/results.md).
 
 ## Installation
 
