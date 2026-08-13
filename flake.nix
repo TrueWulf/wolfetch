@@ -11,7 +11,7 @@
       packages = forAllSystems (pkgs: {
         default = pkgs.rustPlatform.buildRustPackage {
           pname = "wolfetch";
-          version = "0.5.0-pre.5";
+          version = "0.5.0-pre.6";
           src = ./.;
           cargoLock.lockFile = ./Cargo.lock;
           postInstall = ''

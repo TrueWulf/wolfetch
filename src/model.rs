@@ -1,4 +1,4 @@
-pub const VERSION: &[u8] = b"0.5.0-pre.5";
+pub const VERSION: &[u8] = b"0.5.0-pre.6";
 pub const FIELD_DISTRO: u16 = 1 << 0;
 pub const FIELD_KERNEL: u16 = 1 << 1;
 pub const FIELD_WM: u16 = 1 << 2;

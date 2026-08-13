@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.0-pre.6
+
+- Fixed release checksum paths so downloaded assets verify directly.
+
 ## 0.5.0-pre.5
 
 - Fixed Debian release version conversion for prerelease package assets.

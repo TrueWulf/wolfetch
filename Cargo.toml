@@ -1,6 +1,6 @@
 [package]
 name = "wolfetch"
-version = "0.5.0-pre.5"
+version = "0.5.0-pre.6"
 description = "A tiny, fast system fetch for Linux and BSD"
 license = "GPL-3.0-only"
 readme = "README.md"
