@@ -10,10 +10,12 @@ source=("wolfetch-$pkgver.tar.gz::https://github.com/TrueWulf/wolfetch/archive/r
 sha256sums=('SKIP')
 
 build() {
+  cd "$srcdir/wolfetch-$_tag"
   cargo build --release --locked
 }
 
 package() {
+  cd "$srcdir/wolfetch-$_tag"
   install -Dm755 target/release/wolfetch "$pkgdir/usr/bin/wolfetch"
   install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
   install -Dm644 config.example "$pkgdir/usr/share/doc/$pkgname/config.example"
