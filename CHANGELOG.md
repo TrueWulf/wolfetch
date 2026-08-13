@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.0-pre.5
+
+- Fixed Debian release version conversion for prerelease package assets.
+
 ## 0.5.0-pre.4
 
 - Added a release workflow for Debian packages.

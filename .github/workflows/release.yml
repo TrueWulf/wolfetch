@@ -43,7 +43,7 @@ jobs:
         shell: bash
         run: |
           version="${GITHUB_REF_NAME#v}"
-          deb_version="${version/-/~}"
+          deb_version="$(printf '%s' "$version" | tr '-' '~')"
           root="${RUNNER_TEMP}/wolfetch-deb"
           mkdir -p "$root/DEBIAN" "$root/usr/bin" \
             "$root/usr/share/man/man1" "$root/usr/share/man/man5" \
