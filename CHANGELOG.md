@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.0-pre.7
+
+- Fixed Debian asset naming so downloaded checksums match the published file.
+
 ## 0.5.0-pre.6
 
 - Fixed release checksum paths so downloaded assets verify directly.

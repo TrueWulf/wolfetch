@@ -1,6 +1,6 @@
 # Platform Support
 
-Linux is the primary platform for `0.5.0-pre.6`. Its backend reads stable local
+Linux is the primary platform for `0.5.0-pre.7`. Its backend reads stable local
 interfaces and works independently of the init system.
 
 The BSD backends are separated by target so platform-specific system APIs do
