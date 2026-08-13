@@ -1,0 +1,10 @@
+#compdef wolfetch wfetch
+_arguments \
+  '(-p --plain)'{-p,--plain}'[Disable colors]' \
+  '(-j --json)'{-j,--json}'[Print JSON]' \
+  '(-n --no-logo)'{-n,--no-logo}'[Disable wolf art]' \
+  '(-f --fast)'{-f,--fast}'[Skip expensive fields]' \
+  '--theme[Select theme]:theme:(royal mono ocean gray)' \
+  '--config[Configuration file]:file:_files' \
+  '(-h --help)'{-h,--help}'[Print help]' \
+  '(-V --version)'{-V,--version}'[Print version]'

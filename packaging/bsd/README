@@ -1,0 +1,9 @@
+# BSD packaging
+
+This directory reserves the packaging entry points for FreeBSD, OpenBSD,
+NetBSD and DragonFly BSD. Each platform must be reviewed by its native ports
+or pkgsrc maintainers before being described as an official repository package.
+
+The source tree has separate target modules and a shared BSD sysctl layer. Use
+the matching native compiler and run the release smoke tests before submitting
+a port.

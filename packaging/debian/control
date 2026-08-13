@@ -1,0 +1,15 @@
+Source: wolfetch
+Section: utils
+Priority: optional
+Maintainer: wolfetch contributors
+Build-Depends: debhelper-compat (= 13), cargo
+Standards-Version: 4.6.2
+Homepage: https://github.com/TrueWulf/wolfetch
+Rules-Requires-Root: no
+
+Package: wolfetch
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: tiny and fast system fetch for Linux and BSD
+ wolfetch prints a concise system summary beside a minimal wolf.
+ It does not require systemd or a background service.

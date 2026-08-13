@@ -1,0 +1,8 @@
+complete -c wolfetch -s p -l plain -d 'Disable colors'
+complete -c wolfetch -s j -l json -d 'Print JSON'
+complete -c wolfetch -s n -l no-logo -d 'Disable wolf art'
+complete -c wolfetch -s f -l fast -d 'Skip expensive fields'
+complete -c wolfetch -l theme -a 'royal mono ocean gray'
+complete -c wolfetch -l config -r -d 'Configuration file'
+complete -c wolfetch -s h -l help -d 'Print help'
+complete -c wolfetch -s V -l version -d 'Print version'

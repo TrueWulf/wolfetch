@@ -1,0 +1,35 @@
+[package]
+name = "wolfetch"
+version = "0.5.0-pre.1"
+description = "A tiny, fast system fetch for Linux and BSD"
+license = "GPL-3.0-only"
+readme = "README.md"
+keywords = ["system", "fetch", "linux", "bsd", "terminal"]
+categories = ["command-line-utilities"]
+repository = "https://github.com/TrueWulf/wolfetch"
+edition = "2024"
+default-run = "wolfetch"
+
+[[bin]]
+name = "wolfetch"
+path = "src/main.rs"
+test = false
+bench = false
+
+[[bin]]
+name = "wfetch"
+path = "src/bin/wfetch.rs"
+test = false
+bench = false
+
+[dependencies]
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+
+[profile.dev]
+panic = "abort"

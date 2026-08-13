@@ -1,0 +1,3 @@
+Build wolfetch with the SlackBuild toolchain and install the resulting
+package with installpkg. The package contains /usr/bin/wolfetch and the GPLv3
+license. No systemd component is required.

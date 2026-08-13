@@ -1,0 +1,12 @@
+theme=royal
+show=distro,kernel,wm,term,shell,cpu,gpu,memory,uptime
+logo=wolf
+show_runtime=true
+show_process_memory=true
+color_art=27
+color_art_light=75
+color_shadow=243
+color_deep_shadow=238
+color_label=75
+color_value=255
+color_stats=243

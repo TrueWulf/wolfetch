@@ -1,0 +1,12 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@
+
+override_dh_auto_build:
+	cargo build --release --locked
+
+override_dh_auto_install:
+	install -Dm755 target/release/wolfetch debian/wolfetch/usr/bin/wolfetch
+	install -Dm644 LICENSE debian/wolfetch/usr/share/doc/wolfetch/copyright
+	install -Dm644 config.example debian/wolfetch/usr/share/doc/wolfetch/config.example

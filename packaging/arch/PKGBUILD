@@ -1,0 +1,19 @@
+pkgname=wolfetch
+pkgver=0.5.0.pre.1
+pkgrel=1
+pkgdesc='A tiny, fast system fetch for Linux and BSD'
+arch=('x86_64')
+url='https://github.com/TrueWulf/wolfetch'
+license=('GPL3')
+source=("wolfetch-$pkgver.tar.gz")
+sha256sums=('SKIP')
+
+build() {
+  cargo build --release --locked
+}
+
+package() {
+  install -Dm755 target/release/wolfetch "$pkgdir/usr/bin/wolfetch"
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+  install -Dm644 config.example "$pkgdir/usr/share/doc/$pkgname/config.example"
+}

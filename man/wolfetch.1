@@ -1,0 +1,34 @@
+.TH WOLFETCH 1 "August 2026" "wolfetch 0.5.0-pre.1" "User Commands"
+.SH NAME
+wolfetch \- tiny, fast system fetch for Linux and BSD
+.SH SYNOPSIS
+.B wolfetch
+.RI [ OPTIONS ]
+.SH DESCRIPTION
+wolfetch prints a concise system summary beside a minimal wolf. It does not
+require systemd or a background service.
+.SH OPTIONS
+.TP
+.B \-p, \-\-plain
+Disable ANSI colors.
+.TP
+.B \-j, \-\-json
+Print machine-readable JSON.
+.TP
+.B \-n, \-\-no-logo
+Disable the wolf artwork.
+.TP
+.B \-f, \-\-fast
+Skip CPU, GPU, CPU usage and process memory collection.
+.TP
+.BI \-\-theme\ NAME
+Select a built-in theme.
+.TP
+.BI \-\-config\ PATH
+Load a specific key=value configuration file.
+.SH FILES
+.I ~/.config/wolfetch/config
+.br
+.I ${XDG_CONFIG_HOME}/wolfetch/config
+.SH SEE ALSO
+.BR wolfetch (5)
