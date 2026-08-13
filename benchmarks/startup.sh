@@ -21,7 +21,6 @@ commands=(
   fastfetch fastfetch
   macchina macchina
   pfetch pfetch
-  screenfetch screenfetch
 )
 
 if command -v hyfetch >/dev/null 2>&1 && [[ -f "$HOME/.config/hyfetch.json" ]]; then

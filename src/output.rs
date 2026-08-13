@@ -1,6 +1,6 @@
 use crate::art;
 use crate::model::{
-    Config, FIELD_BOARD, FIELD_CPU, FIELD_CPU_USAGE, FIELD_DISK, FIELD_DISTRO, FIELD_GPU,
+    Config, FIELD_BOARD, FIELD_CPU, FIELD_CPU_USAGE, FIELD_DE, FIELD_DISK, FIELD_DISTRO, FIELD_GPU,
     FIELD_HOST, FIELD_KERNEL, FIELD_LOAD, FIELD_MEMORY, FIELD_RESOLUTION, FIELD_SHELL, FIELD_TERM,
     FIELD_UPTIME, FIELD_WM, Field, Info, VERSION,
 };
@@ -10,7 +10,7 @@ pub fn help() {
     let mut buffer = Buffer::new();
     buffer.extend(b"wolfetch ");
     buffer.extend(VERSION);
-    buffer.extend(b"\n\nUsage: wolfetch [OPTIONS]\n\nOptions:\n  -p, --plain      Disable colors\n  -j, --json       Print JSON\n  -n, --no-logo    Disable ASCII art\n  -f, --fast       Skip CPU, GPU and process memory\n      --theme NAME Use a built-in theme\n      --config PATH Use a config file\n  -V, --version    Print version\n  -h, --help       Print help\n");
+    buffer.extend(b"\n\nUsage: wolfetch [OPTIONS]\n\nOptions:\n  -p, --plain      Disable colors\n  -j, --json       Print JSON\n  -n, --no-logo    Disable ASCII art\n  -f, --fast       Skip CPU, GPU and process memory\n  -m, --minimal    Compact output without logo or heavy fields\n      --theme NAME Use a built-in theme\n      --config PATH Use a config file\n  -V, --version    Print version\n  -h, --help       Print help\n");
     buffer.write();
 }
 
@@ -36,7 +36,7 @@ pub fn render(info: &Info, config: &Config, plain: bool, no_logo: bool, json: bo
     let mut buffer = Buffer::new();
     let colors = !plain && unsafe { platform::isatty_stdout() };
     let logo = config.logo && !no_logo;
-    let labels: [&[u8]; 15] = [
+    let labels: [&[u8]; 16] = [
         platform::os_label(),
         b"Kernel",
         b"WM",
@@ -52,6 +52,7 @@ pub fn render(info: &Info, config: &Config, plain: bool, no_logo: bool, json: bo
         b"Resolution",
         b"Board",
         b"CPU usage",
+        b"DE",
     ];
     let masks = [
         FIELD_DISTRO,
@@ -69,6 +70,7 @@ pub fn render(info: &Info, config: &Config, plain: bool, no_logo: bool, json: bo
         FIELD_RESOLUTION,
         FIELD_BOARD,
         FIELD_CPU_USAGE,
+        FIELD_DE,
     ];
     let mut label_width = 7;
     for position in 0..config.order_len {
@@ -178,6 +180,9 @@ fn value(buffer: &mut Buffer, field: &Field, color: u8, colors: bool) {
         buffer.color(color);
     }
     buffer.extend(&field.data[..field.len]);
+    if field.truncated {
+        buffer.extend(b"...");
+    }
     if colors {
         buffer.reset();
     }
@@ -188,6 +193,9 @@ fn stats(buffer: &mut Buffer, field: &Field, color: u8, colors: bool) {
         buffer.color(color);
     }
     buffer.extend(&field.data[..field.len]);
+    if field.truncated {
+        buffer.extend(b"...");
+    }
     if colors {
         buffer.reset();
     }
@@ -196,7 +204,7 @@ fn stats(buffer: &mut Buffer, field: &Field, color: u8, colors: bool) {
 fn render_json(info: &Info, config: &Config) {
     let mut buffer = Buffer::new();
     buffer.push(b'{');
-    let labels: [&[u8]; 15] = [
+    let labels: [&[u8]; 16] = [
         platform::os_label(),
         b"Kernel",
         b"WM",
@@ -212,6 +220,7 @@ fn render_json(info: &Info, config: &Config) {
         b"Resolution",
         b"Board",
         b"CPU usage",
+        b"DE",
     ];
     let masks = [
         FIELD_DISTRO,
@@ -229,6 +238,7 @@ fn render_json(info: &Info, config: &Config) {
         FIELD_RESOLUTION,
         FIELD_BOARD,
         FIELD_CPU_USAGE,
+        FIELD_DE,
     ];
     let mut first = true;
     for position in 0..config.order_len {
@@ -247,6 +257,9 @@ fn render_json(info: &Info, config: &Config) {
             &mut buffer,
             &info.values[index].data[..info.values[index].len],
         );
+        if info.values[index].truncated {
+            buffer.extend(b"...");
+        }
         buffer.push(b'"');
     }
     if config.runtime {
@@ -287,21 +300,25 @@ fn json_bytes(buffer: &mut Buffer, bytes: &[u8]) {
 }
 
 struct Buffer {
-    data: [u8; 2048],
+    data: [u8; 4096],
     len: usize,
+    truncated: bool,
 }
 
 impl Buffer {
     const fn new() -> Self {
         Self {
-            data: [0; 2048],
+            data: [0; 4096],
             len: 0,
+            truncated: false,
         }
     }
     fn push(&mut self, byte: u8) {
         if self.len < self.data.len() {
             self.data[self.len] = byte;
             self.len += 1;
+        } else {
+            self.truncated = true;
         }
     }
     fn extend(&mut self, bytes: &[u8]) {
@@ -351,6 +368,11 @@ impl Buffer {
                 return;
             }
             offset += size as usize;
+        }
+        if self.truncated {
+            unsafe {
+                platform::write(2, b"wolfetch: output truncated\n".as_ptr(), 27);
+            }
         }
     }
 }

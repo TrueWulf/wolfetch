@@ -79,7 +79,7 @@ pub fn copy_cstr(pointer: *const u8, output: &mut [u8]) -> usize {
 }
 
 pub fn collect(config: &Config, start: u64) -> Info {
-    let mut values = [Field::new(); 15];
+    let mut values = [Field::new(); 16];
     let mut system = Utsname {
         sysname: [0; 256],
         nodename: [0; 256],
@@ -134,10 +134,12 @@ pub fn collect(config: &Config, start: u64) -> Info {
     if config.show & (1 << 14) != 0 {
         values[14].set(b"Unknown");
     }
+    if config.show & (1 << 15) != 0 {
+        values[15].set(b"Unknown");
+    }
     fill_unknown(&mut values);
     Info {
         values,
-        wm: b"DE",
         elapsed_us: now().saturating_sub(start),
         rss_kb: 0,
     }
@@ -199,7 +201,7 @@ fn hostname_value(field: &mut Field) {
     }
 }
 
-fn fill_unknown(values: &mut [Field; 15]) {
+fn fill_unknown(values: &mut [Field; 16]) {
     for value in values {
         if value.len == 0 {
             value.set(b"Unknown");

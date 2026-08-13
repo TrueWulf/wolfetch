@@ -1,5 +1,5 @@
 use crate::model::{
-    Config, FIELD_ALL, FIELD_BOARD, FIELD_CPU, FIELD_CPU_USAGE, FIELD_DISK, FIELD_DISTRO,
+    Config, FIELD_ALL, FIELD_BOARD, FIELD_CPU, FIELD_CPU_USAGE, FIELD_DE, FIELD_DISK, FIELD_DISTRO,
     FIELD_GPU, FIELD_HOST, FIELD_KERNEL, FIELD_LOAD, FIELD_MEMORY, FIELD_RESOLUTION, FIELD_SHELL,
     FIELD_TERM, FIELD_UPTIME, FIELD_WM, Palette,
 };
@@ -107,7 +107,8 @@ fn set_fields(config: &mut Config, value: &[u8]) {
         let bit = match trim(item) {
             b"distro" | b"os" => FIELD_DISTRO,
             b"kernel" => FIELD_KERNEL,
-            b"wm" | b"de" => FIELD_WM,
+            b"wm" => FIELD_WM,
+            b"de" | b"desktop" => FIELD_DE,
             b"term" | b"terminal" => FIELD_TERM,
             b"shell" => FIELD_SHELL,
             b"cpu" => FIELD_CPU,
@@ -126,7 +127,7 @@ fn set_fields(config: &mut Config, value: &[u8]) {
         if trim(item) == b"all" {
             config.show = 0;
             config.order_len = 0;
-            for index in 0..15 {
+            for index in 0..16 {
                 if FIELD_ALL & (1 << index) != 0 {
                     add_field(config, 1 << index);
                 }
@@ -154,10 +155,18 @@ mod tests {
     }
 
     #[test]
+    fn desktop_field_is_supported() {
+        let mut config = Config::new();
+        set_fields(&mut config, b"wm,desktop");
+        assert_eq!(config.order_len, 2);
+        assert_eq!(config.order[1], 15);
+    }
+
+    #[test]
     fn show_all_contains_every_field() {
         let mut config = Config::new();
         set_fields(&mut config, b"all");
-        assert_eq!(config.order_len, 15);
+        assert_eq!(config.order_len, 16);
         assert_eq!(config.show, crate::model::FIELD_ALL);
     }
 }

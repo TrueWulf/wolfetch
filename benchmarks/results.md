@@ -9,7 +9,7 @@ disabled (`--shell=none`). The commands use their default output and options.
 
 - Host: AMD Ryzen 7 5700X, 8 cores
 - OS: Arch Linux
-- wolfetch: `0.5.0`, built from this checkout with `cargo build --release`
+- wolfetch: `0.5.1`, built from this checkout with `cargo build --release`
 - Fastfetch: `2.66.0`
 - Macchina: `6.4.0`
 - Timer: Hyperfine `1.20.0`, `--warmup 4 --runs 30 --shell=none`
@@ -29,21 +29,13 @@ representative of every system.
 
 | Program | Mean | Minimum | Maximum |
 | --- | ---: | ---: | ---: |
-| wolfetch | 0.506 ms | 0.408 ms | 0.600 ms |
-| Fastfetch | 6.5 ms | 5.1 ms | 7.6 ms |
-| Macchina | 25.7 ms | 24.3 ms | 28.1 ms |
-| pfetch | 2.6 ms | 2.3 ms | 3.0 ms |
-| screenfetch | 1.097 s | 1.039 s | 1.179 s |
+| wolfetch | 0.551 ms | 0.434 ms | 0.666 ms |
+| Fastfetch | 6.4 ms | 5.7 ms | 7.7 ms |
+| Macchina | 25.8 ms | 23.9 ms | 27.5 ms |
+| pfetch | 2.5 ms | 2.2 ms | 2.9 ms |
 
 ## External Reference
 
 Macchina's historical benchmark page reports 3.3 ms on Linux with an Intel
 Core i5-8265U and Hyperfine flags `-w 4 -m 500 -N`. It is included for context
 only: the hardware, software versions, flags and date differ from this run.
-
-## Other Fetch Commands Checked
-
-The following commands were checked but not included in the measured table:
-`neofetch`, `ufetch`, and `archey` were not installed. `hyfetch` requires an
-interactive first-run configuration in this environment, so it is excluded
-until a fixed non-interactive configuration is available.

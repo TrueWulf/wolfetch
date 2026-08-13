@@ -1,5 +1,5 @@
 use crate::model::{
-    Config, FIELD_BOARD, FIELD_CPU, FIELD_CPU_USAGE, FIELD_DISK, FIELD_DISTRO, FIELD_GPU,
+    Config, FIELD_BOARD, FIELD_CPU, FIELD_CPU_USAGE, FIELD_DE, FIELD_DISK, FIELD_DISTRO, FIELD_GPU,
     FIELD_HOST, FIELD_KERNEL, FIELD_LOAD, FIELD_MEMORY, FIELD_RESOLUTION, FIELD_SHELL, FIELD_TERM,
     FIELD_UPTIME, FIELD_WM, Field, Info, number,
 };
@@ -87,7 +87,7 @@ pub fn copy_cstr(pointer: *const u8, output: &mut [u8]) -> usize {
 }
 
 pub fn collect(config: &Config, start: u64) -> Info {
-    let mut values = [Field::new(); 15];
+    let mut values = [Field::new(); 16];
     let mut file = [0; 2048];
     if config.show & FIELD_DISTRO != 0 {
         let size = read_file(b"/etc/os-release\0", &mut file);
@@ -100,10 +100,7 @@ pub fn collect(config: &Config, start: u64) -> Info {
     }
     let mut desktop = Field::new();
     if config.show & FIELD_WM != 0 {
-        env_value(b"XDG_CURRENT_DESKTOP\0", &mut desktop);
-        if desktop.len == 0 || desktop.data[..desktop.len] == *b"Unknown" {
-            env_value(b"DESKTOP_SESSION\0", &mut desktop);
-        }
+        wm_value(&mut desktop);
         values[2].set(&desktop.data[..desktop.len]);
     }
     if config.show & FIELD_TERM != 0 {
@@ -138,8 +135,7 @@ pub fn collect(config: &Config, start: u64) -> Info {
         disk_value(&mut values[11]);
     }
     if config.show & FIELD_RESOLUTION != 0 {
-        let size = read_file(b"/sys/class/graphics/fb0/virtual_size\0", &mut file);
-        resolution_value(&file[..size], &mut values[12]);
+        resolution_value(&mut values[12]);
     }
     if config.show & FIELD_BOARD != 0 {
         let size = read_file(b"/sys/devices/virtual/dmi/id/board_name\0", &mut file);
@@ -160,14 +156,11 @@ pub fn collect(config: &Config, start: u64) -> Info {
     } else {
         0
     };
-    let wm = if desktop.contains(b"Hypr") || desktop.contains(b"i3") {
-        b"WM"
-    } else {
-        b"DE"
-    };
+    if config.show & FIELD_DE != 0 {
+        de_value(&mut values[15]);
+    }
     Info {
         values,
-        wm,
         elapsed_us: now().saturating_sub(start),
         rss_kb,
     }
@@ -180,6 +173,72 @@ fn env_value(name: &[u8], field: &mut Field) {
     field.len = length.saturating_sub(1);
     if field.len == 0 {
         field.set(b"Unknown");
+    }
+}
+
+fn wm_value(field: &mut Field) {
+    field.set(b"Unknown");
+    if env_copy(b"HYPRLAND_INSTANCE_SIGNATURE\0", &mut field.data) > 0 {
+        field.set(b"Hyprland");
+    } else if env_copy(b"SWAYSOCK\0", &mut field.data) > 0 {
+        field.set(b"Sway");
+    } else if env_copy(b"I3SOCK\0", &mut field.data) > 0 {
+        field.set(b"i3");
+    } else if env_copy(b"BSPWM_SOCKET\0", &mut field.data) > 0 {
+        field.set(b"bspwm");
+    } else {
+        let mut desktop = Field::new();
+        de_value(&mut desktop);
+        if desktop.data[..desktop.len] == *b"GNOME" {
+            field.set(b"Mutter");
+        } else if desktop.data[..desktop.len] == *b"KDE Plasma"
+            || desktop.data[..desktop.len] == *b"KDE"
+        {
+            field.set(b"KWin");
+        } else if desktop.data[..desktop.len] == *b"XFCE" {
+            field.set(b"Xfwm4");
+        } else if desktop.data[..desktop.len] == *b"Cinnamon" {
+            field.set(b"Muffin");
+        } else if desktop.data[..desktop.len] == *b"MATE" {
+            field.set(b"Marco");
+        }
+    }
+}
+
+fn de_value(field: &mut Field) {
+    field.set(b"Unknown");
+    for name in [
+        b"XDG_CURRENT_DESKTOP\0".as_slice(),
+        b"XDG_SESSION_DESKTOP\0".as_slice(),
+        b"DESKTOP_SESSION\0".as_slice(),
+    ] {
+        env_value(name, field);
+        if !field.is_unknown() && !is_compositor_name(field) {
+            canonical_desktop(field);
+            return;
+        }
+    }
+    field.set(b"Unknown");
+}
+
+fn is_compositor_name(field: &Field) -> bool {
+    field.data[..field.len] == *b"Hyprland"
+        || field.data[..field.len] == *b"Sway"
+        || field.data[..field.len] == *b"i3"
+        || field.data[..field.len] == *b"bspwm"
+}
+
+fn canonical_desktop(field: &mut Field) {
+    if field.contains(b"GNOME") {
+        field.set(b"GNOME");
+    } else if field.contains(b"KDE") || field.contains(b"Plasma") {
+        field.set(b"KDE Plasma");
+    } else if field.contains(b"XFCE") || field.contains(b"Xfce") {
+        field.set(b"XFCE");
+    } else if field.contains(b"Cinnamon") {
+        field.set(b"Cinnamon");
+    } else if field.contains(b"MATE") {
+        field.set(b"MATE");
     }
 }
 
@@ -198,16 +257,32 @@ fn line_value(data: &[u8], key: &[u8], field: &mut Field) {
 fn read_cpu(field: &mut Field) {
     let mut data = [0; 512];
     let size = read_file(b"/proc/cpuinfo\0", &mut data);
-    for line in data[..size].split(|byte| *byte == b'\n') {
-        if line.starts_with(b"model name") {
-            if let Some(index) = line.iter().position(|byte| *byte == b':') {
-                field.extend(&line[index + 1..]);
-                field.trim();
-                return;
+    for key in [
+        b"model name".as_slice(),
+        b"Hardware".as_slice(),
+        b"Model".as_slice(),
+    ] {
+        for line in data[..size].split(|byte| *byte == b'\n') {
+            if line.starts_with(key) {
+                if let Some(index) = line.iter().position(|byte| *byte == b':') {
+                    field.extend(&line[index + 1..]);
+                    field.trim();
+                    if !field.is_unknown() {
+                        return;
+                    }
+                }
             }
         }
     }
-    field.set(b"Unknown");
+    let mut fallback = [0; 128];
+    let size = read_file(b"/sys/devices/virtual/dmi/id/product_name\0", &mut fallback);
+    if size > 0 {
+        field.set(&fallback[..size]);
+        field.trim();
+    }
+    if field.len == 0 {
+        field.set(b"Unknown");
+    }
 }
 
 fn memory_value(data: &[u8], field: &mut Field) {
@@ -299,18 +374,80 @@ fn disk_value(field: &mut Field) {
     field.extend(b"% used");
 }
 
-fn resolution_value(data: &[u8], field: &mut Field) {
-    let Some(comma) = data.iter().position(|&byte| byte == b',') else {
-        field.set(b"Unknown");
-        return;
-    };
-    field.clear();
-    field.extend(&data[..comma]);
-    field.push(b'x');
-    field.extend(&data[comma + 1..]);
-    field.trim();
-    if field.len == 0 {
-        field.set(b"Unknown");
+fn resolution_value(field: &mut Field) {
+    field.set(b"Unknown");
+    let connectors = [
+        b"HDMI-A-1\0".as_slice(),
+        b"HDMI-A-2\0".as_slice(),
+        b"DP-1\0".as_slice(),
+        b"DP-2\0".as_slice(),
+        b"DP-3\0".as_slice(),
+        b"DP-4\0".as_slice(),
+        b"eDP-1\0".as_slice(),
+        b"DSI-1\0".as_slice(),
+        b"VGA-1\0".as_slice(),
+        b"Virtual-1\0".as_slice(),
+    ];
+    for card in 0..8u8 {
+        for connector in connectors {
+            let mut path = [0; 112];
+            let prefix = b"/sys/class/drm/card";
+            let suffix = b"/modes\0";
+            let mut len = 0;
+            path[..prefix.len()].copy_from_slice(prefix);
+            len += prefix.len();
+            path[len] = b'0' + card;
+            len += 1;
+            path[len] = b'-';
+            len += 1;
+            let connector_len = connector.len() - 1;
+            path[len..len + connector_len].copy_from_slice(&connector[..connector_len]);
+            len += connector_len;
+            path[len..len + suffix.len()].copy_from_slice(suffix);
+            len += suffix.len();
+            let mut status_path = [0; 112];
+            let status_prefix = b"/sys/class/drm/card";
+            let mut status_len = status_prefix.len();
+            status_path[..status_len].copy_from_slice(status_prefix);
+            status_path[status_len] = b'0' + card;
+            status_len += 1;
+            status_path[status_len] = b'-';
+            status_len += 1;
+            let connector_len = connector.len() - 1;
+            status_path[status_len..status_len + connector_len]
+                .copy_from_slice(&connector[..connector_len]);
+            status_len += connector_len;
+            let status_suffix = b"/status\0";
+            status_path[status_len..status_len + status_suffix.len()]
+                .copy_from_slice(status_suffix);
+            let mut status = [0; 32];
+            let status_size = read_file(
+                &status_path[..status_len + status_suffix.len()],
+                &mut status,
+            );
+            if status_size == 0 || !status[..status_size].starts_with(b"connected") {
+                continue;
+            }
+            let mut data = [0; 128];
+            let size = read_file(&path[..len], &mut data);
+            if size == 0 {
+                continue;
+            }
+            let mut end = data[..size]
+                .iter()
+                .position(|&byte| byte == b'\n')
+                .unwrap_or(size);
+            while end > 0 && data[end - 1].is_ascii_whitespace() {
+                end -= 1;
+            }
+            if end > 0 {
+                field.set(&data[..end]);
+            }
+            field.trim();
+            if !field.is_unknown() {
+                return;
+            }
+        }
     }
 }
 
@@ -360,26 +497,71 @@ fn cpu_ticks(data: &[u8]) -> (u64, u64) {
 }
 
 fn gpu_value(field: &mut Field) {
-    let mut data = [0; 256];
-    let mut size = read_file(b"/sys/class/drm/card0/device/uevent\0", &mut data);
-    if size == 0 {
-        size = read_file(b"/sys/class/drm/card1/device/uevent\0", &mut data);
-    }
-    let mut driver = Field::new();
-    line_value(&data[..size], b"DRIVER=", &mut driver);
-    if driver.data[..driver.len] == *b"nvidia" {
-        let mut slot = Field::new();
-        line_value(&data[..size], b"PCI_SLOT_NAME=", &mut slot);
-        if !nvidia_model(&slot, field) {
-            field.set(b"NVIDIA");
+    field.set(b"Unknown");
+    let mut found = false;
+    let mut data = [0; 512];
+    for card in 0..8u8 {
+        let mut path = [0; 96];
+        let len = device_path(&mut path, card, b"/device/uevent\0");
+        let size = read_file(&path[..len], &mut data);
+        if size == 0 {
+            continue;
         }
-    } else if driver.data[..driver.len] == *b"amdgpu" {
-        field.set(b"AMD Radeon");
-    } else if driver.data[..driver.len] == *b"i915" || driver.data[..driver.len] == *b"xe" {
-        field.set(b"Intel Graphics");
-    } else {
+        let mut driver = Field::new();
+        line_value(&data[..size], b"DRIVER=", &mut driver);
+        let mut model = Field::new();
+        for suffix in [
+            b"/device/product_name\0".as_slice(),
+            b"/device/name\0".as_slice(),
+            b"/device/label\0".as_slice(),
+        ] {
+            let model_len = device_path(&mut path, card, suffix);
+            let model_size = read_file(&path[..model_len], &mut data);
+            if model_size > 0 {
+                model.set(&data[..model_size]);
+                model.trim();
+                if !model.is_unknown() {
+                    break;
+                }
+            }
+        }
+        let mut detected = Field::new();
+        if driver.data[..driver.len] == *b"nvidia" {
+            let mut slot = Field::new();
+            line_value(&data[..size], b"PCI_SLOT_NAME=", &mut slot);
+            if !nvidia_model(&slot, &mut detected) {
+                detected.set(b"NVIDIA");
+            }
+        } else if model.len > 0 && !model.is_unknown() {
+            detected.set(&model.data[..model.len]);
+        } else if driver.data[..driver.len] == *b"amdgpu" {
+            detected.set(b"AMD Radeon");
+        } else if driver.data[..driver.len] == *b"i915" || driver.data[..driver.len] == *b"xe" {
+            detected.set(b"Intel Graphics");
+        }
+        if detected.len > 0 && !detected.is_unknown() {
+            if !found {
+                field.clear();
+                found = true;
+            } else {
+                field.extend(b", ");
+            }
+            field.extend(&detected.data[..detected.len]);
+        }
+    }
+    if !found {
         field.set(b"Unknown");
     }
+}
+
+fn device_path(path: &mut [u8], card: u8, suffix: &[u8]) -> usize {
+    let prefix = b"/sys/class/drm/card";
+    let mut len = prefix.len();
+    path[..len].copy_from_slice(prefix);
+    path[len] = b'0' + card;
+    len += 1;
+    path[len..len + suffix.len()].copy_from_slice(suffix);
+    len + suffix.len()
 }
 
 fn nvidia_model(slot: &Field, field: &mut Field) -> bool {

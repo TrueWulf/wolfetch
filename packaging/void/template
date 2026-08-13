@@ -1,12 +1,12 @@
 pkgname=wolfetch
-version=0.5.0
+version=0.5.1
 revision=1
 build_style=cargo
 short_desc="Tiny and fast system fetch for Linux and BSD"
 maintainer="wolfetch contributors <noreply@example.invalid>"
 license="GPL-3.0-only"
 homepage="https://github.com/TrueWulf/wolfetch"
-distfiles="https://github.com/TrueWulf/wolfetch/archive/refs/tags/v0.5.0.tar.gz"
+distfiles="https://github.com/TrueWulf/wolfetch/archive/refs/tags/v0.5.1.tar.gz"
 checksum=SKIP
 
 post_install() {

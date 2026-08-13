@@ -1,4 +1,4 @@
-pub const VERSION: &[u8] = b"0.5.0";
+pub const VERSION: &[u8] = b"0.5.1";
 pub const FIELD_DISTRO: u16 = 1 << 0;
 pub const FIELD_KERNEL: u16 = 1 << 1;
 pub const FIELD_WM: u16 = 1 << 2;
@@ -14,6 +14,7 @@ pub const FIELD_DISK: u16 = 1 << 11;
 pub const FIELD_RESOLUTION: u16 = 1 << 12;
 pub const FIELD_BOARD: u16 = 1 << 13;
 pub const FIELD_CPU_USAGE: u16 = 1 << 14;
+pub const FIELD_DE: u16 = 1 << 15;
 pub const FIELD_DEFAULT: u16 = FIELD_DISTRO
     | FIELD_KERNEL
     | FIELD_WM
@@ -22,19 +23,22 @@ pub const FIELD_DEFAULT: u16 = FIELD_DISTRO
     | FIELD_CPU
     | FIELD_GPU
     | FIELD_MEMORY
-    | FIELD_UPTIME;
+    | FIELD_UPTIME
+    | FIELD_DE;
 pub const FIELD_ALL: u16 = FIELD_DEFAULT
     | FIELD_HOST
     | FIELD_LOAD
     | FIELD_DISK
     | FIELD_RESOLUTION
     | FIELD_BOARD
-    | FIELD_CPU_USAGE;
+    | FIELD_CPU_USAGE
+    | FIELD_DE;
 
 #[derive(Clone, Copy)]
 pub struct Field {
     pub data: [u8; 128],
     pub len: usize,
+    pub truncated: bool,
 }
 
 impl Field {
@@ -42,17 +46,21 @@ impl Field {
         Self {
             data: [0; 128],
             len: 0,
+            truncated: false,
         }
     }
 
     pub fn clear(&mut self) {
         self.len = 0;
+        self.truncated = false;
     }
 
     pub fn push(&mut self, byte: u8) {
         if self.len < self.data.len() {
             self.data[self.len] = byte;
             self.len += 1;
+        } else {
+            self.truncated = true;
         }
     }
 
@@ -82,12 +90,19 @@ impl Field {
         }
         self.data.copy_within(start..end, 0);
         self.len = end - start;
+        if self.len == 0 {
+            self.set(b"Unknown");
+        }
     }
 
     pub fn contains(&self, needle: &[u8]) -> bool {
         self.data[..self.len]
             .windows(needle.len())
             .any(|window| window == needle)
+    }
+
+    pub fn is_unknown(&self) -> bool {
+        self.data[..self.len] == *b"Unknown"
     }
 
     pub fn slash_tail(&mut self) {
@@ -150,6 +165,27 @@ pub fn number(bytes: &[u8]) -> u64 {
         }
     }
     value
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Field;
+
+    #[test]
+    fn field_marks_truncated_input() {
+        let mut field = Field::new();
+        field.extend(&[b'x'; 129]);
+        assert_eq!(field.len, 128);
+        assert!(field.truncated);
+    }
+
+    #[test]
+    fn empty_field_becomes_unknown_when_trimmed() {
+        let mut field = Field::new();
+        field.set(b"   ");
+        field.trim();
+        assert!(field.is_unknown());
+    }
 }
 
 #[derive(Clone, Copy)]
@@ -219,7 +255,7 @@ pub struct Config {
     pub logo: bool,
     pub runtime: bool,
     pub process_memory: bool,
-    pub order: [u8; 15],
+    pub order: [u8; 16],
     pub order_len: usize,
 }
 
@@ -231,15 +267,14 @@ impl Config {
             logo: true,
             runtime: true,
             process_memory: true,
-            order: [0, 1, 2, 3, 4, 5, 6, 7, 8, 0, 0, 0, 0, 0, 0],
-            order_len: 9,
+            order: [0, 1, 2, 3, 4, 5, 6, 7, 8, 15, 0, 0, 0, 0, 0, 0],
+            order_len: 10,
         }
     }
 }
 
 pub struct Info {
-    pub values: [Field; 15],
-    pub wm: &'static [u8],
+    pub values: [Field; 16],
     pub elapsed_us: u64,
     pub rss_kb: u64,
 }
@@ -249,6 +284,7 @@ pub struct Args {
     pub json: bool,
     pub no_logo: bool,
     pub fast: bool,
+    pub minimal: bool,
     pub theme: *const u8,
     pub config: *const u8,
     pub help: bool,

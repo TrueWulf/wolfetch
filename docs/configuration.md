@@ -19,9 +19,11 @@ wolfetch checks `${XDG_CONFIG_HOME}/wolfetch/config`, then
 | `show_runtime` | `true`, `false` | `true` |
 | `show_process_memory` | `true`, `false` | `true` |
 
-The field names are `distro`, `kernel`, `host`, `wm`, `term`, `shell`, `cpu`,
-`cpu_usage`, `gpu`, `memory`, `disk`, `load`, `resolution`, `board` and
-`uptime`. `load` means load average; `cpu_usage` samples CPU activity.
+The field names are `distro`, `kernel`, `host`, `wm`, `de`, `term`, `shell`,
+`cpu`, `cpu_usage`, `gpu`, `memory`, `disk`, `load`, `resolution`, `board` and
+`uptime`. `wm` is the compositor/window manager; `de` is the desktop
+environment when the session exposes one. `load` means load average;
+`cpu_usage` samples CPU activity.
 
 ## Colors
 

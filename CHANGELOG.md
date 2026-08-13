@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.1
+
+- Added `--minimal` output mode.
+- Added separate desktop environment reporting.
+- Improved Linux GPU and display mode detection.
+- Added output truncation warnings and regression coverage.
+
 ## 0.5.0
 
 - First stable release.

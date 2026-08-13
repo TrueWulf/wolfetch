@@ -23,13 +23,12 @@ pub fn os_label() -> &'static [u8] {
 }
 
 pub fn collect(_: &Config, _: u64) -> Info {
-    let mut values = [Field::new(); 15];
+    let mut values = [Field::new(); 16];
     for value in &mut values {
         value.set(b"Unknown");
     }
     Info {
         values,
-        wm: b"WM",
         elapsed_us: 0,
         rss_kb: 0,
     }

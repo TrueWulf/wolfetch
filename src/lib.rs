@@ -27,9 +27,22 @@ pub fn run(argc: i32, argv: *const *const u8) -> i32 {
     if args.no_logo {
         config.logo = false;
     }
-    if args.fast {
+    if args.fast || args.minimal {
         config.show &= !(model::FIELD_CPU | model::FIELD_CPU_USAGE | model::FIELD_GPU);
         config.process_memory = false;
+    }
+    if args.minimal {
+        config.logo = false;
+        config.show = model::FIELD_DISTRO
+            | model::FIELD_KERNEL
+            | model::FIELD_WM
+            | model::FIELD_TERM
+            | model::FIELD_SHELL
+            | model::FIELD_MEMORY
+            | model::FIELD_UPTIME
+            | model::FIELD_DE;
+        config.order_len = 8;
+        config.order[..8].copy_from_slice(&[0, 1, 2, 3, 4, 7, 8, 15]);
     }
     let start = platform::now();
     let info = platform::collect(&config, start);

@@ -21,6 +21,9 @@ jobs:
       - run: cargo check --target ${{ matrix.target }}
       - run: cargo test
       - run: cargo build --release --target ${{ matrix.target }}
+      - name: CLI and JSON regression tests
+        if: matrix.target == 'x86_64-unknown-linux-gnu'
+        run: bash tests/cli.sh target/${{ matrix.target }}/release/wolfetch
 
   freebsd:
     runs-on: ubuntu-latest

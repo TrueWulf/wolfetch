@@ -29,6 +29,7 @@ wolfetch --json
 - Minimal royal-blue terminal output.
 - Configurable fields and field order.
 - JSON, plain, fast and no-logo modes.
+- `--minimal` mode for a compact, low-cost summary.
 - Simple `key=value` configuration.
 - No system service or runtime daemon.
 - No shell commands executed from configuration.
@@ -36,24 +37,21 @@ wolfetch --json
 ## Benchmark
 
 Measured locally on Arch Linux with Hyperfine, 4 warmups and 30 measured
-launches, wolfetch started about **12.8x faster than Fastfetch**, **50.9x
-faster than Macchina**, **5.1x faster than pfetch**, and **2,168x faster than
-Screenfetch** in this test.
+launches, wolfetch started about **11.5x faster than Fastfetch**, **46.9x
+faster than Macchina**, and **4.6x faster than pfetch** in this test.
 These are local results, not universal performance guarantees. Macchina's wiki
 also reports **3.3 ms** on a different Intel i5-8265U Linux system using
 Hyperfine; that historical result is not mixed into this comparison.
 
 | Program | Median startup | Relative to wolfetch |
 | --- | ---: | ---: |
-| wolfetch | 0.506 ms | 1.0x |
-| Fastfetch | 6.5 ms | 12.8x slower |
-| Macchina | 25.7 ms | 50.9x slower |
-| pfetch | 2.6 ms | 5.1x slower |
-| Screenfetch | 1.097 s | 2,168x slower |
-
-Fastfetch and Macchina were installed for the local run. Neofetch, Screenfetch,
-Pfetch, Ufetch, Hyfetch and Archey were also checked but were not installed in
-the test environment, so no numbers are invented for them.
+| wolfetch | 0.551 ms | 1.0x |
+| Fastfetch | 6.4 ms | 11.5x slower |
+| Macchina | 25.8 ms | 46.9x slower |
+| pfetch | 2.5 ms | 4.6x slower |
+Fastfetch, Macchina and pfetch-rs were installed for the local run. The
+benchmark compares each program's default output and data collection; it does
+not claim that one implementation or language is universally faster.
 
 Run the reproducible benchmark yourself:
 
@@ -76,7 +74,7 @@ The latest downloads are available in
 
 ```ini
 theme=royal
-show=distro,kernel,host,wm,term,shell,cpu,gpu,memory,disk,load,uptime
+show=distro,kernel,host,wm,de,term,shell,cpu,gpu,memory,disk,load,uptime
 logo=wolf
 show_runtime=true
 show_process_memory=true
