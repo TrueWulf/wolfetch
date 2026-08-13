@@ -78,7 +78,7 @@ pub fn copy_cstr(pointer: *const u8, output: &mut [u8]) -> usize {
     0
 }
 
-pub fn collect(config: &Config, start: u64) -> Info {
+pub fn collect(config: &Config, start: u64, _: bool) -> Info {
     let mut values = [Field::new(); 16];
     let mut system = Utsname {
         sysname: [0; 256],

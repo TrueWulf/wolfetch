@@ -10,7 +10,7 @@ pub fn help() {
     let mut buffer = Buffer::new();
     buffer.extend(b"wolfetch ");
     buffer.extend(VERSION);
-    buffer.extend(b"\n\nUsage: wolfetch [OPTIONS]\n\nOptions:\n  -p, --plain      Disable colors\n  -j, --json       Print JSON\n  -n, --no-logo    Disable ASCII art\n  -f, --fast       Skip CPU, GPU and process memory\n  -m, --minimal    Compact output without logo or heavy fields\n      --theme NAME Use a built-in theme\n      --config PATH Use a config file\n  -V, --version    Print version\n  -h, --help       Print help\n");
+    buffer.extend(b"\n\nUsage: wolfetch [OPTIONS]\n\nOptions:\n  -p, --plain      Disable colors\n  -j, --json       Print JSON\n  -n, --no-logo    Disable ASCII art\n  -f, --fast       Skip CPU, GPU and process memory\n  -m, --minimal    Compact output without logo or heavy fields\n  -u, --gpu-usage  Enable optional GPU utilization backend\n      --theme NAME Use a built-in theme\n      --config PATH Use a config file\n  -V, --version    Print version\n  -h, --help       Print help\n");
     buffer.write();
 }
 

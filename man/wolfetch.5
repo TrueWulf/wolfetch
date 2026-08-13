@@ -1,4 +1,4 @@
-.TH WOLFETCH 5 "August 2026" "wolfetch 0.5.3" "File Formats"
+.TH WOLFETCH 5 "August 2026" "wolfetch 0.5.4" "File Formats"
 .SH NAME
 wolfetch \- wolfetch configuration file
 .SH DESCRIPTION
@@ -12,5 +12,6 @@ show_runtime=true
 show_process_memory=true
 .fi
 .SH FIELDS
-Fields include distro, kernel, host, wm, term, shell, cpu, cpu_usage, gpu,
-display order.
+Fields include distro, kernel, host, wm, de, term, shell, cpu, cpu_usage, gpu,
+memory, disk, load, resolution, board and uptime. Use `wm=name` to override
+window-manager detection when the session has no marker.

@@ -30,6 +30,10 @@ usage in parentheses, for example `CPU: AMD Ryzen 7 (7%)` and
 `GPU: NVIDIA GeForce RTX (N/A)`. GPU usage is reported only when a supported
 Linux sysfs metric is available.
 
+Optional NVIDIA utilization can be enabled with `wolfetch --gpu-usage` (or
+`-u`). This dynamically loads NVML when `libnvidia-ml.so.1` is installed; the
+normal command does not load NVML and keeps the fast startup path.
+
 Set `wm=dwl` (or another name) when a window manager does not expose a stable
 session marker. The override is explicit rather than guessing from unrelated
 processes.

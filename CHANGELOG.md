@@ -1,9 +1,15 @@
 # Changelog
 
+## 0.5.4
+
+- Add `--gpu-usage`/`-u` for optional dynamic NVML NVIDIA utilization.
+- Keep the default startup path free of NVML initialization.
+
 ## 0.5.3
 
 - Hide unavailable desktop environment data from the default output.
 - Keep `DE` available through explicit configuration or `show=all`.
+- Add optional dynamic NVML GPU utilization through `--gpu-usage`.
 
 ## 0.5.2
 

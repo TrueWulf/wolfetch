@@ -1,5 +1,5 @@
 pkgname=wolfetch
-pkgver=0.5.3
+pkgver=0.5.4
 pkgrel=0
 pkgdesc="Tiny and fast system fetch for Linux and BSD"
 url="https://github.com/TrueWulf/wolfetch"

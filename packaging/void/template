@@ -1,5 +1,5 @@
 pkgname=wolfetch
-version=0.5.3
+version=0.5.4
 revision=1
 build_style=cargo
 short_desc="Tiny and fast system fetch for Linux and BSD"

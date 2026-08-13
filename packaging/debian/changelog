@@ -8,3 +8,8 @@ wolfetch (0.5.3-1) unstable; urgency=medium
   * Hide unavailable desktop environment data from default output.
 
  -- wolfetch contributors <wolfetch@example.invalid>  Thu, 13 Aug 2026 00:00:00 +0000
+wolfetch (0.5.4-1) unstable; urgency=medium
+
+  * Add optional NVML GPU utilization support.
+
+ -- wolfetch contributors <wolfetch@example.invalid>  Thu, 13 Aug 2026 00:00:00 +0000

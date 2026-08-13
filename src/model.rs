@@ -1,4 +1,4 @@
-pub const VERSION: &[u8] = b"0.5.3";
+pub const VERSION: &[u8] = b"0.5.4";
 pub const FIELD_DISTRO: u16 = 1 << 0;
 pub const FIELD_KERNEL: u16 = 1 << 1;
 pub const FIELD_WM: u16 = 1 << 2;
@@ -288,6 +288,7 @@ pub struct Args {
     pub no_logo: bool,
     pub fast: bool,
     pub minimal: bool,
+    pub gpu_usage: bool,
     pub theme: *const u8,
     pub config: *const u8,
     pub help: bool,

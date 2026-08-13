@@ -1,6 +1,6 @@
 # Platform Support
 
-Linux is the primary platform for `0.5.3`. Its backend reads stable local
+Linux is the primary platform for `0.5.4`. Its backend reads stable local
 interfaces and works independently of the init system.
 
 The BSD backends are separated by target so platform-specific system APIs do
@@ -22,8 +22,9 @@ a particular kernel should display `Unknown`, not fail the whole fetch.
 - CPU usage: calculates the system-wide cumulative busy ratio from `/proc/stat`
   without external commands or a startup delay.
 - GPU usage: reads AMD `gpu_busy_percent` and supported Intel
-  `gt_busy_percent` sysfs files. NVIDIA reports `N/A` without NVML or
-  `nvidia-smi`.
+  `gt_busy_percent` sysfs files. NVIDIA can use the optional `--gpu-usage`
+  backend, which dynamically loads NVML without invoking `nvidia-smi`.
+  Without that flag or NVML, NVIDIA reports `N/A`.
 - WM: detects Hyprland, Sway, niri, river, i3, bspwm, dwm, dwl, awesome,
   Openbox, XMonad, KWin, Mutter, Xfwm4, Marco and Muffin using session
   environment markers.

@@ -22,7 +22,7 @@ pub fn os_label() -> &'static [u8] {
     b"OS"
 }
 
-pub fn collect(_: &Config, _: u64) -> Info {
+pub fn collect(_: &Config, _: u64, _: bool) -> Info {
     let mut values = [Field::new(); 16];
     for value in &mut values {
         value.set(b"Unknown");

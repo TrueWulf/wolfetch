@@ -3,6 +3,7 @@ use crate::model::{
     FIELD_HOST, FIELD_KERNEL, FIELD_LOAD, FIELD_MEMORY, FIELD_RESOLUTION, FIELD_SHELL, FIELD_TERM,
     FIELD_UPTIME, FIELD_WM, Field, Info, number,
 };
+use core::ffi::c_void;
 
 #[link(name = "c")]
 unsafe extern "C" {
@@ -15,6 +16,21 @@ unsafe extern "C" {
     fn gethostname(name: *mut u8, length: usize) -> i32;
     fn statvfs(path: *const u8, info: *mut Statvfs) -> i32;
     pub fn write(fd: i32, buffer: *const u8, length: usize) -> isize;
+}
+
+#[link(name = "dl")]
+unsafe extern "C" {
+    fn dlopen(path: *const u8, flags: i32) -> *mut c_void;
+    fn dlsym(handle: *mut c_void, name: *const u8) -> *mut c_void;
+    fn dlclose(handle: *mut c_void) -> i32;
+}
+
+const RTLD_LAZY: i32 = 1;
+
+#[repr(C)]
+struct NvmlUtilization {
+    gpu: u32,
+    memory: u32,
 }
 
 #[repr(C)]
@@ -85,7 +101,7 @@ pub fn copy_cstr(pointer: *const u8, output: &mut [u8]) -> usize {
     0
 }
 
-pub fn collect(config: &Config, start: u64) -> Info {
+pub fn collect(config: &Config, start: u64, gpu_usage: bool) -> Info {
     let mut values = [Field::new(); 16];
     let mut file = [0; 2048];
     let cpu_sample = if config.show & (FIELD_CPU | FIELD_CPU_USAGE) != 0 {
@@ -166,7 +182,7 @@ pub fn collect(config: &Config, start: u64) -> Info {
         values[14] = cpu_usage;
     }
     let gpu_usage = if config.show & FIELD_GPU != 0 {
-        gpu_usage_value()
+        gpu_usage_value(&values[6], gpu_usage)
     } else {
         unknown()
     };
@@ -597,7 +613,7 @@ fn read_cpu_ticks() -> (u64, u64) {
     cpu_ticks(&data[..size])
 }
 
-fn gpu_usage_value() -> Field {
+fn gpu_usage_value(gpu: &Field, enabled: bool) -> Field {
     let mut output = Field::new();
     let mut found = false;
     for card in 0..8u8 {
@@ -633,7 +649,88 @@ fn gpu_usage_value() -> Field {
             found = true;
         }
     }
+    let nvidia = if enabled && gpu.contains(b"NVIDIA") {
+        nvidia_usage_value()
+    } else {
+        Field::new()
+    };
+    if nvidia.len > 0 {
+        if found {
+            output.extend(b", ");
+        }
+        output.extend(&nvidia.data[..nvidia.len]);
+        found = true;
+    }
     if found { output } else { unknown() }
+}
+
+fn nvidia_usage_value() -> Field {
+    type Init = unsafe extern "C" fn() -> u32;
+    type Shutdown = unsafe extern "C" fn() -> u32;
+    type GetCount = unsafe extern "C" fn(*mut u32) -> u32;
+    type GetHandle = unsafe extern "C" fn(u32, *mut *mut c_void) -> u32;
+    type GetUtilization = unsafe extern "C" fn(*mut c_void, *mut NvmlUtilization) -> u32;
+
+    let handle = unsafe { dlopen(b"libnvidia-ml.so.1\0".as_ptr(), RTLD_LAZY) };
+    if handle.is_null() {
+        return Field::new();
+    }
+    let init = unsafe { nvml_symbol::<Init>(handle, b"nvmlInit_v2\0".as_ptr()) };
+    let shutdown = unsafe { nvml_symbol::<Shutdown>(handle, b"nvmlShutdown\0".as_ptr()) };
+    let get_count = unsafe {
+        nvml_symbol::<GetCount>(handle, b"nvmlDeviceGetCount_v2\0".as_ptr())
+            .or_else(|| nvml_symbol::<GetCount>(handle, b"nvmlDeviceGetCount\0".as_ptr()))
+    };
+    let get_handle = unsafe {
+        nvml_symbol::<GetHandle>(handle, b"nvmlDeviceGetHandleByIndex_v2\0".as_ptr())
+            .or_else(|| nvml_symbol::<GetHandle>(handle, b"nvmlDeviceGetHandleByIndex\0".as_ptr()))
+    };
+    let get_utilization = unsafe {
+        nvml_symbol::<GetUtilization>(handle, b"nvmlDeviceGetUtilizationRates\0".as_ptr())
+    };
+    let (Some(init), Some(shutdown), Some(get_count), Some(get_handle), Some(get_utilization)) =
+        (init, shutdown, get_count, get_handle, get_utilization)
+    else {
+        unsafe { dlclose(handle) };
+        return Field::new();
+    };
+
+    let mut count = 0;
+    if unsafe { init() } != 0 || unsafe { get_count(&mut count) } != 0 {
+        unsafe {
+            shutdown();
+            dlclose(handle);
+        }
+        return Field::new();
+    }
+    let mut output = Field::new();
+    for index in 0..count {
+        let mut device = core::ptr::null_mut();
+        let mut utilization = NvmlUtilization { gpu: 0, memory: 0 };
+        if unsafe { get_handle(index, &mut device) } == 0
+            && unsafe { get_utilization(device, &mut utilization) } == 0
+        {
+            if output.len > 0 {
+                output.extend(b", ");
+            }
+            output.u64(u64::from(utilization.gpu));
+            output.push(b'%');
+        }
+    }
+    unsafe {
+        shutdown();
+        dlclose(handle);
+    }
+    output
+}
+
+unsafe fn nvml_symbol<T>(handle: *mut c_void, name: *const u8) -> Option<T> {
+    let pointer = unsafe { dlsym(handle, name) };
+    if pointer.is_null() {
+        None
+    } else {
+        Some(unsafe { core::mem::transmute_copy(&pointer) })
+    }
 }
 
 fn is_percentage(field: &Field) -> bool {

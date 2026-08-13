@@ -4,4 +4,4 @@ version = 4
 
 [[package]]
 name = "wolfetch"
-version = "0.5.3"
+version = "0.5.4"

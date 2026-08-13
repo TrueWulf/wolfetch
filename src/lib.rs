@@ -44,7 +44,7 @@ pub fn run(argc: i32, argv: *const *const u8) -> i32 {
         config.order_len = 7;
     }
     let start = platform::now();
-    let info = platform::collect(&config, start);
+    let info = platform::collect(&config, start, args.gpu_usage);
     output::render(&info, &config, args.plain, args.no_logo, args.json);
     0
 }

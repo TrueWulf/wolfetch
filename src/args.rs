@@ -8,6 +8,7 @@ pub fn parse(argc: i32, argv: *const *const u8) -> Args {
         no_logo: false,
         fast: false,
         minimal: false,
+        gpu_usage: false,
         theme: ptr::null(),
         config: ptr::null(),
         help: false,
@@ -31,6 +32,8 @@ pub fn parse(argc: i32, argv: *const *const u8) -> Args {
             args.fast = true;
         } else if equals(arg, b"--minimal") || equals(arg, b"-m") {
             args.minimal = true;
+        } else if equals(arg, b"--gpu-usage") || equals(arg, b"-u") {
+            args.gpu_usage = true;
         } else if equals(arg, b"--theme") {
             index += 1;
             if index >= argc as isize {
@@ -79,6 +82,14 @@ mod tests {
         let args = parse(3, pointers.as_ptr());
         assert!(args.minimal);
         assert!(args.json);
+        assert!(!args.error);
+    }
+
+    #[test]
+    fn parses_gpu_usage_flag() {
+        let pointers = [b"wolfetch\0".as_ptr(), b"-u\0".as_ptr()];
+        let args = parse(2, pointers.as_ptr());
+        assert!(args.gpu_usage);
         assert!(!args.error);
     }
 

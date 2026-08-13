@@ -1,13 +1,13 @@
 pkgname=wolfetch
-pkgver=0.5.3
-_tag=0.5.3
+pkgver=0.5.4
+_tag=0.5.4
 pkgrel=1
 pkgdesc='A tiny, fast system fetch for Linux and BSD'
 arch=('x86_64')
 url='https://github.com/TrueWulf/wolfetch'
 license=('GPL3')
 source=("wolfetch-$pkgver.tar.gz::https://github.com/TrueWulf/wolfetch/releases/download/v$_tag/wolfetch-$_tag.tar.gz")
-sha256sums=('2c67f749f8fd523d300f67b6e4bd59ff13441d6dfe60508c24fff709bc2daa1d')
+sha256sums=('SKIP')
 
 build() {
   cd "$srcdir/wolfetch-$_tag"
