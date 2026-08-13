@@ -6,6 +6,6 @@ pkgbase = wolfetch
 	arch = x86_64
 	license = GPL3
 	source = wolfetch-0.5.0.pre3.tar.gz::https://github.com/TrueWulf/wolfetch/archive/refs/tags/v0.5.0-pre.3.tar.gz
-	sha256sums = SKIP
+	sha256sums = 4934de8eb9de0535eec2f4578aad4b0e735c7db693c2a26e0b4f1aeceeb58f1b
 
 pkgname = wolfetch
