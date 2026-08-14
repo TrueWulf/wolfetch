@@ -21,7 +21,6 @@ wolfetch
 wfetch
 wolfetch --plain
 wolfetch --json
-wolfetch       # fastest default path
 wolfetch -u    # optional NVIDIA NVML usage
 ```
 
